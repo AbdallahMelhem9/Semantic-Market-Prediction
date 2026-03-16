@@ -52,7 +52,7 @@ newsdata:
 
 llm:
   backend: "openrouter"
-  model: "meta-llama/llama-3.3-70b-instruct"
+  model: "openai/gpt-4o"
   temperature: 0
   batch_size: 10
   prompt_version: "v1"

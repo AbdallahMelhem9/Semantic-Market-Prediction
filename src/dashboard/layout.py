@@ -57,13 +57,13 @@ def create_layout() -> dbc.Container:
                             dcc.Dropdown(
                                 id="filter-llm",
                                 options=[
-                                    {"label": "DeepSeek R1", "value": "deepseek/deepseek-r1"},
-                                    {"label": "Llama 3.3 70B", "value": "meta-llama/llama-3.3-70b-instruct"},
                                     {"label": "GPT-4o", "value": "openai/gpt-4o"},
                                     {"label": "Claude Sonnet", "value": "anthropic/claude-sonnet-4.6"},
-                                    {"label": "Ollama", "value": "ollama"},
+                                    {"label": "Llama 3.3 70B", "value": "meta-llama/llama-3.3-70b-instruct"},
+                                    {"label": "DeepSeek R1", "value": "deepseek/deepseek-r1"},
+                                    {"label": "Ollama (local)", "value": "ollama"},
                                 ],
-                                value="meta-llama/llama-3.3-70b-instruct",
+                                value="openai/gpt-4o",
                                 clearable=False,
                             ),
                         ], className="sidebar-section"),
