@@ -181,21 +181,30 @@ def run_pipeline_for_region(settings: Settings, region_key: str, region_config: 
 
 def _fetch_market_index(symbol: str, start: date, end: date) -> pd.DataFrame:
     import yfinance as yf
+    import time as _time
     from datetime import timedelta
-    try:
-        ticker = yf.Ticker(symbol)
-        hist = ticker.history(start=str(start - timedelta(days=5)), end=str(end + timedelta(days=1)))
-        if hist.empty:
+
+    for attempt in range(3):
+        try:
+            ticker = yf.Ticker(symbol)
+            hist = ticker.history(start=str(start - timedelta(days=5)), end=str(end + timedelta(days=1)))
+            if hist.empty:
+                if attempt < 2:
+                    _time.sleep(3)
+                    continue
+                return pd.DataFrame()
+            df = hist[["Close"]].reset_index()
+            df.columns = ["date", "sp500_close"]
+            df["date"] = pd.to_datetime(df["date"]).dt.date
+            df["sp500_return"] = df["sp500_close"].pct_change()
+            df["sp500_direction"] = (df["sp500_return"] > 0).astype(int)
+            return df
+        except Exception as e:
+            if attempt < 2:
+                _time.sleep(3)
+                continue
+            logger.error(f"Failed to fetch {symbol}: {e}")
             return pd.DataFrame()
-        df = hist[["Close"]].reset_index()
-        df.columns = ["date", "sp500_close"]  # keep column name consistent for downstream
-        df["date"] = pd.to_datetime(df["date"]).dt.date
-        df["sp500_return"] = df["sp500_close"].pct_change()
-        df["sp500_direction"] = (df["sp500_return"] > 0).astype(int)
-        return df
-    except Exception as e:
-        logger.error(f"Failed to fetch {symbol}: {e}")
-        return pd.DataFrame()
 
 
 def _run_prediction(settings: Settings, merged_df: pd.DataFrame, region_key: str) -> dict:
