@@ -12,6 +12,10 @@ from src.dashboard.app import run_dashboard
 
 
 def main() -> None:
+    from pathlib import Path
+    for d in ["data/cache/news_raw", "data/cache/scored", "data/processed", "data/models"]:
+        Path(d).mkdir(parents=True, exist_ok=True)
+
     settings = load_settings()
     setup_logging(settings)
     logger = logging.getLogger(__name__)
