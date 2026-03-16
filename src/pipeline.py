@@ -102,9 +102,23 @@ def run_pipeline_for_region(settings: Settings, region_key: str, region_config: 
 
     logger.info(f"[{region_key}] Articles ready: {len(articles_df)}")
 
-    logger.info(f"[{region_key}] Step 2: LLM Scoring with {prompt_suffix} prompt")
-    scorer = create_scorer(settings, region=prompt_suffix)
-    scored_df = score_articles_in_batches(articles_df, scorer, settings)
+    # Step 2: Score articles with GPT-5.4 (cached)
+    logger.info(f"[{region_key}] Step 2: Article Scoring (GPT-5.4)")
+    import copy
+
+    gpt_cache_name = f"gpt54_{region_key}"
+    cached_gpt = cache.load_scored(gpt_cache_name)
+    if not cached_gpt.empty and len(cached_gpt) == len(articles_df):
+        scored_df = cached_gpt
+        logger.info(f"[{region_key}] Loaded GPT-5.4 scores from cache ({len(scored_df)} articles)")
+    else:
+        gpt_settings = copy.deepcopy(settings)
+        gpt_settings.llm.backend = "openrouter"
+        gpt_settings.llm.model = "openai/gpt-5.4"
+        scorer_gpt = create_scorer(gpt_settings, region=prompt_suffix)
+        scored_df = score_articles_in_batches(articles_df, scorer_gpt, gpt_settings)
+        cache.save_scored(scored_df, gpt_cache_name)
+        logger.info(f"[{region_key}] GPT-5.4 scored and cached {len(scored_df)} articles")
 
     # Go back 14 days before earliest article so even day 1 gets prior S&P context
     logger.info(f"[{region_key}] Step 3: Market Data ({market_name})")
@@ -117,15 +131,50 @@ def run_pipeline_for_region(settings: Settings, region_key: str, region_config: 
         max_date = max(dates)
         market_df = _fetch_market_index(market_index, min_date, max_date)
 
-    logger.info(f"[{region_key}] Step 4: LLM Daily Assessment")
+    # Step 4: Ensemble Daily Assessment (GPT-5.4 + Claude 4.6 averaged)
+    logger.info(f"[{region_key}] Step 4: Ensemble Daily Assessment")
+    ensemble_daily_cache = f"ensemble_daily_{region_key}"
+    cached_daily = cache.load_scored(ensemble_daily_cache)
     daily_assessments = []
-    try:
-        from src.analysis.daily_assessor import assess_daily_sentiment
-        daily_assessments = assess_daily_sentiment(settings, scored_df, market_df)
-        if daily_assessments:
-            logger.info(f"[{region_key}] LLM assessed {len(daily_assessments)} days")
-    except Exception as e:
-        logger.warning(f"[{region_key}] Daily assessment failed, using averages: {e}")
+
+    if not cached_daily.empty:
+        daily_assessments = cached_daily.to_dict(orient="records")
+        logger.info(f"[{region_key}] Loaded ensemble daily assessment from cache ({len(daily_assessments)} days)")
+    else:
+        try:
+            from src.analysis.daily_assessor import assess_daily_sentiment
+
+            # GPT-5.4 daily assessment
+            gpt_settings = copy.deepcopy(settings)
+            gpt_settings.llm.backend = "openrouter"
+            gpt_settings.llm.model = "openai/gpt-5.4"
+            gpt_daily = assess_daily_sentiment(gpt_settings, scored_df, market_df)
+            logger.info(f"[{region_key}] GPT-5.4 assessed {len(gpt_daily)} days")
+
+            # Claude 4.6 daily assessment
+            claude_settings = copy.deepcopy(settings)
+            claude_settings.llm.backend = "openrouter"
+            claude_settings.llm.model = "anthropic/claude-sonnet-4.6"
+            claude_daily = assess_daily_sentiment(claude_settings, scored_df, market_df)
+            logger.info(f"[{region_key}] Claude 4.6 assessed {len(claude_daily)} days")
+
+            # Ensemble: average daily_fear from both
+            if gpt_daily and claude_daily and len(gpt_daily) == len(claude_daily):
+                daily_assessments = []
+                for g, c in zip(gpt_daily, claude_daily):
+                    merged_day = g.copy()
+                    merged_day["daily_fear"] = (g.get("daily_fear", 5) + c.get("daily_fear", 5)) / 2
+                    merged_day["reasoning"] = f"GPT: {g.get('reasoning', '')} | Claude: {c.get('reasoning', '')}"
+                    daily_assessments.append(merged_day)
+                logger.info(f"[{region_key}] Ensemble: averaged {len(daily_assessments)} days")
+            else:
+                daily_assessments = gpt_daily or claude_daily or []
+
+            # Cache ensemble daily
+            if daily_assessments:
+                cache.save_scored(pd.DataFrame(daily_assessments), ensemble_daily_cache)
+        except Exception as e:
+            logger.warning(f"[{region_key}] Daily assessment failed, using averages: {e}")
 
     logger.info(f"[{region_key}] Step 5: Timeseries")
     daily_df = aggregate_daily_sentiment(scored_df, settings.visualization.rolling_windows)

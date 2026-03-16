@@ -29,24 +29,33 @@ SECTOR_ETFS_EU = {
 
 def _fetch_sector_etf(symbol: str, start_date, end_date) -> pd.DataFrame:
     import yfinance as yf
+    import time as _time
     from datetime import timedelta
-    try:
-        ticker = yf.Ticker(symbol)
-        hist = ticker.history(
-            start=str(start_date - timedelta(days=5)),
-            end=str(end_date + timedelta(days=1)),
-        )
-        if hist.empty:
+
+    for attempt in range(3):
+        try:
+            ticker = yf.Ticker(symbol)
+            hist = ticker.history(
+                start=str(start_date - timedelta(days=5)),
+                end=str(end_date + timedelta(days=1)),
+            )
+            if hist.empty:
+                if attempt < 2:
+                    _time.sleep(3)
+                    continue
+                return pd.DataFrame()
+            df = hist[["Close"]].reset_index()
+            df.columns = ["date", "sp500_close"]
+            df["date"] = pd.to_datetime(df["date"]).dt.date
+            df["sp500_return"] = df["sp500_close"].pct_change()
+            df["sp500_direction"] = (df["sp500_return"] > 0).astype(int)
+            return df
+        except Exception as e:
+            if attempt < 2:
+                _time.sleep(3)
+                continue
+            logger.warning(f"Failed to fetch ETF {symbol}: {e}")
             return pd.DataFrame()
-        df = hist[["Close"]].reset_index()
-        df.columns = ["date", "sp500_close"]  # reuse column name so chart code works
-        df["date"] = pd.to_datetime(df["date"]).dt.date
-        df["sp500_return"] = df["sp500_close"].pct_change()
-        df["sp500_direction"] = (df["sp500_return"] > 0).astype(int)
-        return df
-    except Exception as e:
-        logger.warning(f"Failed to fetch ETF {symbol}: {e}")
-        return pd.DataFrame()
 
 
 def register_callbacks(app, pipeline_data: dict):
@@ -331,7 +340,7 @@ def register_callbacks(app, pipeline_data: dict):
     chat_engine = None
 
     @app.callback(
-        [Output("chat-messages", "children"), Output("chat-input", "value"), Output("chat-loading", "children")],
+        [Output("chat-messages", "children"), Output("chat-input", "value"), Output("chat-loading", "children"), Output("store-chat-history", "data")],
         [Input("btn-chat", "n_clicks")],
         [State("chat-input", "value"), State("store-chat-history", "data"), State("store-active-region", "data")],
         prevent_initial_call=True,
@@ -340,7 +349,7 @@ def register_callbacks(app, pipeline_data: dict):
         nonlocal chat_engine
 
         if not user_input or not user_input.strip():
-            return no_update, no_update, no_update
+            return no_update, no_update, no_update, no_update
 
         if chat_history is None:
             chat_history = []
@@ -367,14 +376,31 @@ def register_callbacks(app, pipeline_data: dict):
 
         messages_ui = []
         for msg in chat_history:
-            style = {"padding": "8px 12px", "margin": "4px 0", "borderRadius": "8px", "maxWidth": "80%"}
             if msg["role"] == "user":
-                style.update({"background": "#334155", "marginLeft": "auto", "color": "#f1f5f9"})
+                messages_ui.append(html.Div(msg["text"], style={
+                    "padding": "8px 14px", "margin": "6px 0", "borderRadius": "8px",
+                    "maxWidth": "75%", "marginLeft": "auto",
+                    "background": "#253045", "color": "#d4dce8", "fontSize": "0.85rem",
+                }))
             else:
-                style.update({"background": "#1e3a5f", "color": "#93c5fd"})
-            messages_ui.append(html.Div(msg["text"], style=style))
+                # Format assistant response with line breaks
+                lines = msg["text"].split("\n")
+                formatted = []
+                for line in lines:
+                    if line.strip().startswith("- ") or line.strip().startswith("• "):
+                        formatted.append(html.Div(line, style={"paddingLeft": "12px", "fontSize": "0.8rem"}))
+                    elif line.strip().startswith("References") or line.strip().startswith("**"):
+                        formatted.append(html.Div(line, style={"fontWeight": "600", "marginTop": "6px", "fontSize": "0.8rem"}))
+                    elif line.strip():
+                        formatted.append(html.Div(line, style={"fontSize": "0.8rem", "marginBottom": "3px"}))
 
-        return messages_ui, "", ""
+                messages_ui.append(html.Div(formatted, style={
+                    "padding": "10px 14px", "margin": "6px 0", "borderRadius": "8px",
+                    "maxWidth": "85%", "background": "#1a2d42", "color": "#b8d0e8",
+                    "borderLeft": "3px solid #D4A843", "lineHeight": "1.4",
+                }))
+
+        return messages_ui, "", "", chat_history
 
 
 def _get_region_data(pipeline_data: dict, region: str) -> tuple:

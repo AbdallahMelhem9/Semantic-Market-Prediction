@@ -74,30 +74,21 @@ class ChatEngine:
         return self._simple_response(question)
 
     def _call_llm(self, prompt: str) -> str | None:
+        """Always uses Claude 4.6 for chat, regardless of selected scoring model."""
         import requests
 
-        backend = self.settings.llm.backend
-
-        url_map = {
-            "openrouter": ("https://openrouter.ai/api/v1/chat/completions", self.settings.secrets.openrouter_api_key),
-            "huggingface": ("https://router.huggingface.co/together/v1/chat/completions", self.settings.secrets.huggingface_token),
-            "groq": ("https://api.groq.com/openai/v1/chat/completions", self.settings.secrets.groq_api_key),
-        }
-
-        if backend not in url_map:
-            return None
-
-        url, api_key = url_map[backend]
+        api_key = self.settings.secrets.openrouter_api_key
         if not api_key:
             return None
 
         try:
-            resp = requests.post(url,
+            resp = requests.post(
+                "https://openrouter.ai/api/v1/chat/completions",
                 headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
                 json={
-                    "model": self.settings.llm.model,
+                    "model": "anthropic/claude-sonnet-4.6",
                     "messages": [{"role": "user", "content": prompt}],
-                    "max_tokens": 500,
+                    "max_tokens": 600,
                     "temperature": 0.3,
                 },
                 timeout=30,
@@ -105,7 +96,7 @@ class ChatEngine:
             resp.raise_for_status()
             return resp.json()["choices"][0]["message"]["content"]
         except Exception as e:
-            logger.warning(f"Chat LLM call failed: {e}")
+            logger.warning(f"Chat (Claude 4.6) failed: {e}")
             return None
 
     def _simple_response(self, question: str) -> str:

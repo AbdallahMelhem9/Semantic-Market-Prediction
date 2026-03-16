@@ -34,7 +34,7 @@ def create_layout() -> dbc.Container:
                             dcc.Dropdown(
                                 id="filter-days",
                                 options=[
-                                    {"label": "Past few days", "value": 8},
+                                    {"label": "Last 8 days", "value": 8},
                                     {"label": "3 months", "value": 90},
                                 ],
                                 value=8,
@@ -57,13 +57,14 @@ def create_layout() -> dbc.Container:
                             dcc.Dropdown(
                                 id="filter-llm",
                                 options=[
+                                    {"label": "GPT-5.4", "value": "openai/gpt-5.4"},
                                     {"label": "GPT-4o", "value": "openai/gpt-4o"},
-                                    {"label": "Claude Sonnet", "value": "anthropic/claude-sonnet-4.6"},
+                                    {"label": "Claude Sonnet 4.6", "value": "anthropic/claude-sonnet-4.6"},
                                     {"label": "Llama 3.3 70B", "value": "meta-llama/llama-3.3-70b-instruct"},
                                     {"label": "DeepSeek R1", "value": "deepseek/deepseek-r1"},
                                     {"label": "Ollama (local)", "value": "ollama"},
                                 ],
-                                value="openai/gpt-4o",
+                                value="openai/gpt-5.4",
                                 clearable=False,
                             ),
                         ], className="sidebar-section"),
@@ -146,7 +147,7 @@ def create_layout() -> dbc.Container:
         ], id="tabs", active_tab="tab-dashboard"),
 
         # Hidden stores
-        dcc.Store(id="store-chat-history", data=[]),
+        dcc.Store(id="store-chat-history", data=[], storage_type="session"),
         dcc.Store(id="store-rescore-trigger", data=0),
 
     ], fluid=True, style={"background": "#0d1b2a", "minHeight": "100vh", "padding": "0"})
