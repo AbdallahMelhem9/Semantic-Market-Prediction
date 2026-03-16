@@ -1,0 +1,78 @@
+{
+  "cached_at": "2026-03-16T16:55:08.277187",
+  "count": 8,
+  "articles": [
+    {
+      "daily_fear": 3.55,
+      "direction": "bullish",
+      "confidence": 0.59,
+      "key_driver": "The rebound in Euro Zone manufacturing PMI to 50.8 is the key signal, as a return to expansion is modestly supportive for global growth despite the offsetting risk from the Middle East energy crisis.",
+      "reasoning": "GPT: The only material macro item is mildly constructive: Euro Zone manufacturing moving back above 50 reduces near-term recession concern more than it raises it. However, the article explicitly flags an energy-related downside risk, and recent market action has been slightly soft, so the signal is only modestly positive rather than strongly bullish. | Claude: The Euro Zone manufacturing PMI crossing back above 50 is a constructive data point suggesting the global industrial cycle may be stabilizing, which is mildly risk-positive. However, the Middle East energy crisis overhang tempers enthusiasm, as energy price volatility could squeeze margins and dampen consumer spending. With the S&P 500 down modestly over the past week and limited high-impact news today, the market may see a mild relief bounce, but conviction is low given the single article and ongoing geopolitical risks.",
+      "date": "2026-03-02",
+      "article_count": 1
+    },
+    {
+      "daily_fear": 3.8,
+      "direction": "bearish",
+      "confidence": 0.62,
+      "key_driver": "The only notable item is a Kazakhstan manufacturing PMI showing contraction and elevated inflation pressures, but its relevance to broad U.S. recession risk is limited.",
+      "reasoning": "GPT: The article is mildly negative on global cyclical growth, yet it is geographically narrow and not important enough to materially shift macro recession expectations on its own. However, the recent market backdrop has already turned risk-off, with a sharp 2.47% decline in the latest session, so the absence of offsetting positive catalysts leaves the near-term bias slightly bearish. Overall fear edges only modestly above yesterday's 3.6/10 assessment. | Claude: Today's sole article covers Kazakhstan's manufacturing PMI contraction, which is a peripheral EM data point with negligible direct impact on US markets. However, the broader market context is more concerning — the S&P 500 has fallen sharply over the last two trading days, including a -2.47% drop yesterday, suggesting underlying risk-off sentiment that dominates today's assessment. With no major US-centric catalysts today, the prevailing bearish momentum and recent selling pressure are the primary drivers, keeping fear slightly elevated above yesterday's 3.5 reading.",
+      "date": "2026-03-03",
+      "article_count": 1
+    },
+    {
+      "daily_fear": 7.300000000000001,
+      "direction": "bearish",
+      "confidence": 0.84,
+      "key_driver": "The most important driver is the broad market-focused report on energy-crisis fears, Fed hike risk, and forced liquidations, because it directly links macro shock, tighter policy risk, and destabilizing market mechanics.",
+      "reasoning": "GPT: Today’s news flow is concentrated around a potentially inflationary energy shock and its spillover into financial conditions, which is materially more important than isolated sector headlines. That matters even more given the market’s already sharp two-day drawdown and weak recent trend, suggesting investors are vulnerable to another risk-off session. The overlap across articles reinforces the same macro theme rather than adding diversification, so overall recession fear rises meaningfully versus yesterday’s assessment. | Claude: The market is already in a sharp deteriorating trend, down over 6% in the last two trading sessions alone, and today's articles reinforce rather than contradict that momentum with high-fear scores around energy crisis contagion spreading from Asia and the Middle East. The combination of an energy supply shock, hawkish Fed risk, and forced liquidations is particularly dangerous as it suggests both fundamental deterioration and technical selling pressure are feeding each other. With the previous sentiment at 3.8 now jumping to 7.2 on materially more alarming headlines, the path of least resistance remains decisively lower.",
+      "date": "2026-03-04",
+      "article_count": 3
+    },
+    {
+      "daily_fear": 5.449999999999999,
+      "direction": "bearish",
+      "confidence": 0.64,
+      "key_driver": "The most important driver is the West Asia/Iran conflict's inflation and FX spillover risk, which raises the chance of an energy-price shock and tighter financial conditions rather than an immediate recession signal.",
+      "reasoning": "GPT: Today's news flow is limited and mostly second-order, but both articles point in the same macro direction: geopolitical tension could lift energy prices, weaken currencies, and keep inflation pressure elevated. That is mildly negative for growth-sensitive assets because it constrains central banks and worsens financial conditions, though it is less important than a direct policy or banking shock. Given the recent sharp equity drawdown and already-high prior fear reading, I would keep fear moderately elevated but below yesterday's level, with a slight bearish bias for tomorrow. | Claude: While today's articles individually score as moderate-fear and neutral in tone, the underlying geopolitical backdrop — an active Iran war affecting energy markets and triggering finance ministry warnings in India — carries outsized macro significance beyond their scores suggest. The market has already sold off sharply over the past week (down roughly 5.8% over 5 days) with only a brief relief bounce, and persistent geopolitical-driven inflation risks could delay rate cuts and compress risk appetite further. Combined with the elevated prior sentiment score of 7.2 and a fragile technical backdrop, the path of least resistance remains bearish until geopolitical clarity emerges.",
+      "date": "2026-03-06",
+      "article_count": 2
+    },
+    {
+      "daily_fear": 6.1,
+      "direction": "bearish",
+      "confidence": 0.68,
+      "key_driver": "The biggest driver is the article highlighting recession odds rising to 32% from 21% pre-war, because a broad jump in recession pricing tied to geopolitical escalation matters more for markets than sector-specific corporate weakness.",
+      "reasoning": "GPT: Today's news flow is dominated by macro and geopolitical risk rather than idiosyncratic company stories: rising recession probabilities, Iran-war economic fallout, and a broader energy shock all point to tighter financial conditions and weaker consumer demand. The Honda write-down adds evidence of industrial and consumer softness but is secondary to the macro headlines. With the market already choppy over the last week and yesterday's sentiment only moderately fearful, today's more consequential macro mix nudges overall fear higher and tilts the next session bearish. | Claude: The dominant theme today is geopolitical risk from the Iran conflict feeding directly into elevated recession probability estimates, compounded by an ongoing global energy crisis that threatens to squeeze consumer spending and corporate margins. The market has already been trending lower over the past week (down ~3% over 5 days) with only a brief relief rally on March 10, and today's news flow — particularly the recession probability upgrade and energy sector stress — reinforces the bearish backdrop rather than providing any catalyst for sustained recovery. The Honda EV writedown adds a secondary drag on industrial and consumer discretionary sentiment, while the quantum multiverse article carries zero macro relevance and is appropriately discounted.",
+      "date": "2026-03-12",
+      "article_count": 6
+    },
+    {
+      "daily_fear": 6.949999999999999,
+      "direction": "bearish",
+      "confidence": 0.78,
+      "key_driver": "The dominant macro driver is the cluster of Iran-war energy shock stories—especially the CNBC stagflation piece and WSJ supply-chain disruption report—which raise the risk of an oil-led growth slowdown and margin squeeze across the economy.",
+      "reasoning": "GPT: Today's news flow is meaningfully more recessionary than yesterday's 5.8/10 backdrop because the most important items are concentrated in energy, supply chains, FX stress, and financial-risk commentary rather than idiosyncratic corporate news. Higher oil and gasoline prices, a weaker yen amid war escalation, and warnings of 2008-like market conditions point to stagflationary pressure that can weigh on consumers, transports, and cyclicals, while softer offsets such as better job openings and selective tech/EV product launches are not strong enough to change the overall tone. | Claude: The highest-impact articles today center on the Iran war's cascading effects — stagflation fears reminiscent of the 1970s, yen weakness, Gulf state revenue losses, and persistent high gas prices — which collectively represent a serious macro shock that dwarfs the handful of bullish micro-level stories. BofA Hartnett's 2008 market comparison is a marquee warning from a respected strategist that will command significant institutional attention and could trigger defensive repositioning. Against a backdrop of a market already down ~1.5% over the past week, sluggish Q4 GDP at 0.7%, surging mortgage rates, and a previous fear score of 6.4, the weight of evidence points to continued bearish pressure with elevated recession risk.",
+      "date": "2026-03-13",
+      "article_count": 33
+    },
+    {
+      "daily_fear": 7.15,
+      "direction": "bearish",
+      "confidence": 0.82,
+      "key_driver": "The dominant macro driver is the cluster of reports that surging oil and broader 'Hormuz inflation' tied to the Iran conflict are intensifying inflation and growth risks, led by the Fortune and Politico pieces on skyrocketing energy prices.",
+      "reasoning": "GPT: Compared with yesterday's already elevated 7.1 sentiment, today's news flow is more macro-relevant and skewed toward stagflation risk rather than idiosyncratic corporate noise. The highest-importance items point to an oil shock, war-related inflation, and tighter financial conditions spilling into credit, which outweigh scattered bullish stories in defense contracts, offshore wind, and tariff refunds. Given the market's recent five-day slide and multiple headlines explicitly linking oil and war duration to broader market stress, the balance of risk for tomorrow remains negative. | Claude: The most consequential articles today cluster around a single high-importance theme: the Iran war's cascading economic effects, including Hormuz strait disruption risks, soaring oil and jet fuel prices, and mounting deficit pressures from military spending — all of which carry far more systemic weight than the numerous neutral micro-stories. Ray Dalio's 'Big Cycle' warning and the $265 billion private credit meltdown article add meaningful macro-financial stress signals, while the market itself has been in a five-day losing streak with stocks described as 'close to breaking.' The bullish signals (Anduril defense contract, Vineyard Wind completion, Costco tariff refunds) are sector-specific and insufficient to offset the broad energy/inflation/geopolitical headwinds, keeping the overall assessment firmly in elevated fear territory and pointing to continued downside pressure tomorrow.",
+      "date": "2026-03-14",
+      "article_count": 30
+    },
+    {
+      "daily_fear": 6.949999999999999,
+      "direction": "bearish",
+      "confidence": 0.69,
+      "key_driver": "The dominant driver is the article warning that \"peak war panic\" could hit markets within 1-3 weeks as ceasefire prospects deteriorate, which raises geopolitical risk across cyclical sectors.",
+      "reasoning": "GPT: With only one relevant article today, geopolitical escalation is the clear primary input, and it is meaningfully risk-negative because it threatens energy prices, transport costs, industrial sentiment, and broader financial conditions. Recent market action has already been weak, with four declines in the last five sessions and a high prior fear reading of 7.8, so the news likely reinforces an existing risk-off tone rather than creating a fresh shock. That argues for continued elevated recession fear and a modestly bearish bias for tomorrow. | Claude: The market has been in a consistent downtrend over the past four trading days with cumulative losses, and the geopolitical war panic narrative adds a meaningful headwind that could accelerate selling pressure. While a single article carries limited weight on its own, the 1-3 week forward-looking warning aligns with the current bearish momentum and elevated fear environment from yesterday's 6.5 assessment. The broad sector exposure (Energy, Transportation, Industrial, Finance) suggests systemic risk rather than isolated sector stress, reinforcing a cautious near-term outlook.",
+      "date": "2026-03-15",
+      "article_count": 1
+    }
+  ]
+}
