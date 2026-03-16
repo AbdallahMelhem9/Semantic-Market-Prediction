@@ -40,10 +40,10 @@ The panel can compare both forecasts and see where they agree or disagree.
 
 ## The Pipeline
 
-Each run goes through these steps (US and Europe run in parallel):
+Each run goes through these steps (US and Europe run in parallel via ThreadPoolExecutor — both regions score simultaneously):
 
 1. **Fetch articles** — NewsAPI for recent headlines, Google News RSS for historical context. Articles cached for 24h so re-runs don't waste API calls.
-2. **Score articles** — GPT-5.4 reads each article and returns: recession_fear (0-10), market_sentiment (bearish/neutral/bullish), confidence, rationale, and sector tags. 10 articles scored in parallel. Results cached per model.
+2. **Score articles** — GPT-5.4 reads each article and returns: recession_fear (0-10), market_sentiment (bearish/neutral/bullish), confidence, rationale, and sector tags. 10 articles scored concurrently via multithreading (ThreadPoolExecutor with 10 workers). Results cached per model.
 3. **Fetch market data** — S&P 500 or Euro Stoxx 50 via yfinance, going back 14 days before the earliest article so the daily assessment has prior market context.
 4. **Ensemble daily assessment** — For each day, both GPT-5.4 and Claude 4.6 see all articles + previous market data. Their daily fear scores are averaged. Results cached so subsequent runs skip this step.
 5. **Build timeseries** — Daily scores with 3-day and 7-day rolling averages, momentum, and volatility.
@@ -77,7 +77,7 @@ Region-specific few-shot examples in the prompts ensure the LLM understands that
 - **Region toggle** — Switch between US and Europe
 - **Fear gauge** — Semicircular indicator showing overall market fear
 - **Dual forecast** — XGBoost prediction and LLM analysis side by side with confidence scores
-- **Sentiment vs market chart** — Recession fear (inverted axis) against S&P 500 or sector ETFs. When you select a sector, the chart swaps to that sector's ETF (e.g., XLE for Energy)
+- **Sentiment vs market chart** — Recession fear (inverted axis) against S&P 500 or sector ETFs. When you select a sector, the chart swaps to that sector's corresponding ETF (Energy→XLE, Technology→XLK, Finance→XLF, Healthcare→XLV). Sector sentiment uses per-article score averaging (cheaper than running the ensemble per sector) while the overall "All" view uses the full ensemble daily assessment
 - **Lag correlation heatmap** — Shows whether sentiment at day T predicts market movement at T+1, T+3, etc.
 - **Sector heatmap** — Fear levels across sectors (Technology, Finance, Energy, Healthcare, etc.) over time
 - **Sector vs ETF comparison** — Each sector's fear plotted against its corresponding ETF
@@ -100,6 +100,13 @@ All accessed through OpenRouter (one API key, all models):
 | Ollama | Local scoring if installed | Free |
 
 Typical first run costs ~$0.50 (GPT-5.4 articles + Claude ensemble). Re-runs with cached scores cost $0.
+
+## Performance & Parallelism
+
+- **Region-level parallelism:** US and Europe pipelines run simultaneously in separate threads
+- **Article-level parallelism:** 10 concurrent LLM API calls via ThreadPoolExecutor (scoring 70 articles in ~45 seconds instead of ~12 minutes sequentially)
+- **Caching:** All API results cached to disk — warm restarts skip LLM calls entirely
+- **Rate limiting:** Exponential backoff with retries on API failures (OpenRouter, yfinance). yfinance calls retry 3 times with 3-second delays if rate-limited — handles both S&P 500 and sector ETF fetches gracefully
 
 ## Quick Start
 

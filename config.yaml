@@ -52,7 +52,7 @@ newsdata:
 
 llm:
   backend: "openrouter"
-  model: "openai/gpt-4o"
+  model: "openai/gpt-5.4"
   temperature: 0
   batch_size: 10
   prompt_version: "v1"
