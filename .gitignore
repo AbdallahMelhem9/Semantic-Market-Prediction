@@ -9,10 +9,10 @@ __pycache__/
 *.egg-info/
 .eggs/
 
-# Data (cached/generated)
-data/cache/
-data/models/
-data/processed/
+# Data (keep cache for deployment)
+# data/cache/
+# data/models/
+# data/processed/
 
 # IDE
 .vscode/

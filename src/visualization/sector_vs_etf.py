@@ -71,10 +71,19 @@ def create_sector_vs_etf_chart(scored_df: pd.DataFrame, region: str = "us") -> g
             mode="lines+markers", showlegend=(row == 1),
         ), row=row, col=1)
 
-        # ETF price line
+        # ETF price line (with retry for rate limits)
+        import time as _time
+        hist = pd.DataFrame()
+        for _attempt in range(3):
+            try:
+                ticker = yf.Ticker(etf_symbol)
+                hist = ticker.history(start=start, end=end)
+                if not hist.empty:
+                    break
+                _time.sleep(2)
+            except Exception:
+                _time.sleep(2)
         try:
-            ticker = yf.Ticker(etf_symbol)
-            hist = ticker.history(start=start, end=end)
             if not hist.empty:
                 etf_df = hist[["Close"]].reset_index()
                 etf_df.columns = ["date", "close"]

@@ -108,9 +108,29 @@ def run_pipeline_for_region(settings: Settings, region_key: str, region_config: 
 
     gpt_cache_name = f"gpt54_{region_key}"
     cached_gpt = cache.load_scored(gpt_cache_name)
-    if not cached_gpt.empty and len(cached_gpt) == len(articles_df):
-        scored_df = cached_gpt
-        logger.info(f"[{region_key}] Loaded GPT-5.4 scores from cache ({len(scored_df)} articles)")
+
+    # Check if cached scores cover all current articles (by URL match)
+    if not cached_gpt.empty and "url" in cached_gpt.columns and "url" in articles_df.columns:
+        cached_urls = set(cached_gpt["url"].tolist())
+        current_urls = set(articles_df["url"].tolist())
+        missing = current_urls - cached_urls
+
+        if not missing:
+            scored_df = cached_gpt[cached_gpt["url"].isin(current_urls)].reset_index(drop=True)
+            logger.info(f"[{region_key}] Loaded GPT-5.4 scores from cache ({len(scored_df)} articles)")
+        else:
+            # Score only new articles, merge with cached
+            new_articles = articles_df[articles_df["url"].isin(missing)]
+            logger.info(f"[{region_key}] {len(missing)} new articles to score, {len(cached_gpt)} already cached")
+            gpt_settings = copy.deepcopy(settings)
+            gpt_settings.llm.backend = "openrouter"
+            gpt_settings.llm.model = "openai/gpt-5.4"
+            scorer_gpt = create_scorer(gpt_settings, region=prompt_suffix)
+            new_scored = score_articles_in_batches(new_articles, scorer_gpt, gpt_settings)
+            scored_df = pd.concat([cached_gpt, new_scored], ignore_index=True)
+            scored_df = scored_df.drop_duplicates(subset=["url"], keep="first").reset_index(drop=True)
+            cache.save_scored(scored_df, gpt_cache_name)
+            logger.info(f"[{region_key}] GPT-5.4 scored {len(missing)} new + {len(cached_gpt)} cached = {len(scored_df)} total")
     else:
         gpt_settings = copy.deepcopy(settings)
         gpt_settings.llm.backend = "openrouter"
@@ -138,6 +158,8 @@ def run_pipeline_for_region(settings: Settings, region_key: str, region_config: 
     daily_assessments = []
 
     if not cached_daily.empty:
+        if "date" in cached_daily.columns:
+            cached_daily["date"] = pd.to_datetime(cached_daily["date"]).dt.date
         daily_assessments = cached_daily.to_dict(orient="records")
         logger.info(f"[{region_key}] Loaded ensemble daily assessment from cache ({len(daily_assessments)} days)")
     else:
@@ -170,9 +192,12 @@ def run_pipeline_for_region(settings: Settings, region_key: str, region_config: 
             else:
                 daily_assessments = gpt_daily or claude_daily or []
 
-            # Cache ensemble daily
+            # Cache ensemble daily (convert dates to strings for JSON)
             if daily_assessments:
-                cache.save_scored(pd.DataFrame(daily_assessments), ensemble_daily_cache)
+                daily_cache_df = pd.DataFrame(daily_assessments)
+                if "date" in daily_cache_df.columns:
+                    daily_cache_df["date"] = daily_cache_df["date"].astype(str)
+                cache.save_scored(daily_cache_df, ensemble_daily_cache)
         except Exception as e:
             logger.warning(f"[{region_key}] Daily assessment failed, using averages: {e}")
 
