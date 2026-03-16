@@ -1,0 +1,90 @@
+regions:
+  us:
+    name: "United States"
+    market_index: "^GSPC"
+    market_name: "S&P 500"
+    keywords:
+      - "recession"
+      - "economic downturn"
+      - "Fed rate"
+      - "unemployment"
+      - "inflation"
+      - "GDP"
+      - "consumer confidence"
+    prompt_suffix: "us"
+    news_country: "us"
+    sector_etfs:
+      Technology: "XLK"
+      Finance: "XLF"
+      Energy: "XLE"
+      Healthcare: "XLV"
+
+  europe:
+    name: "Europe"
+    market_index: "^STOXX50E"
+    market_name: "Euro Stoxx 50"
+    keywords:
+      - "recession"
+      - "ECB policy"
+      - "eurozone"
+      - "energy crisis"
+      - "inflation"
+      - "PMI"
+      - "trade data"
+    prompt_suffix: "eu"
+    news_country: ""
+    news_query_extra: "europe OR eurozone OR ECB"
+    sector_etfs:
+      Technology: "EXV8.DE"
+      Finance: "EXV1.DE"
+      Energy: "EXH1.DE"
+      Healthcare: "EXV4.DE"
+
+news:
+  days: 30
+  page_size: 100
+  sources:
+    - "newsapi"
+    - "newsdata"
+
+newsdata:
+  api_key_env: "NEWSDATA_API_KEY"
+
+llm:
+  backend: "openrouter"
+  model: "meta-llama/llama-3.3-70b-instruct"
+  temperature: 0
+  batch_size: 10
+  prompt_version: "v1"
+  ollama_url: "http://localhost:11434"
+
+visualization:
+  theme: "dark"
+  rolling_windows: [3, 7]
+
+prediction:
+  test_split: 0.3
+  features:
+    - "avg_recession_fear"
+    - "rolling_3d"
+    - "rolling_7d"
+    - "volatility"
+    - "article_count"
+    - "momentum"
+
+sectors:
+  - "Technology"
+  - "Finance"
+  - "Energy"
+  - "Healthcare"
+  - "Consumer"
+  - "Industrial"
+
+server:
+  host: "127.0.0.1"
+  port: 8050
+  debug: true
+
+logging:
+  level: "INFO"
+  format: "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"

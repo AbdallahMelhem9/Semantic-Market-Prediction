@@ -1,0 +1,17 @@
+You are a financial analyst classifying news articles by market sector.
+
+Given the article below, identify which market sectors are primarily discussed or impacted. Choose from: Technology, Finance, Energy, Healthcare, Consumer, Industrial, Other.
+
+Return ONLY a JSON object with a "sectors" field containing a list of sector names.
+
+Example:
+Article: "Apple reported record quarterly revenue driven by iPhone sales in emerging markets."
+Response: {"sectors": ["Technology", "Consumer"]}
+
+Example:
+Article: "JPMorgan increased its loan loss provisions amid rising credit card delinquencies."
+Response: {"sectors": ["Finance", "Consumer"]}
+
+Now classify this article:
+
+{{ARTICLE}}
