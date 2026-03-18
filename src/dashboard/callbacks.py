@@ -264,10 +264,39 @@ def register_callbacks(app, pipeline_data: dict):
                 window_scored = scored_df.copy()
                 logger.info(f"[{region_key}] Rescore: no time filter, assessing all {scored_df['date'].nunique()} days")
 
-            try:
-                new_assessments = assess_daily_sentiment(settings, window_scored, market_df)
-            except Exception:
-                new_assessments = []
+            from concurrent.futures import ThreadPoolExecutor, as_completed
+
+            # Run overall + Financials + Energy in parallel
+            rescore_results = {}
+            with ThreadPoolExecutor(max_workers=3) as pool:
+                futures = {
+                    pool.submit(assess_daily_sentiment, copy.deepcopy(settings), window_scored.copy(), market_df): "overall",
+                }
+                for sec in ["Financials", "Energy"]:
+                    futures[pool.submit(assess_daily_sentiment, copy.deepcopy(settings), window_scored.copy(), market_df, sec)] = sec
+
+                for future in as_completed(futures):
+                    key = futures[future]
+                    try:
+                        rescore_results[key] = future.result()
+                        logger.info(f"[{region_key}] Rescore {key}: {len(rescore_results[key])} days")
+                    except Exception as e:
+                        logger.warning(f"[{region_key}] Rescore {key} failed: {e}")
+                        rescore_results[key] = []
+
+            new_assessments = rescore_results.get("overall", [])
+
+            # Update sector daily in pipeline_data
+            for sec in ["Financials", "Energy"]:
+                sec_result = rescore_results.get(sec, [])
+                if sec_result:
+                    old_sector = data.get("sector_daily", {}).get(sec, [])
+                    if rescore_cutoff and old_sector:
+                        kept = [a for a in old_sector if str(a.get("date", ""))[:10] < str(rescore_cutoff)]
+                        sec_result = kept + sec_result
+                    if "sector_daily" not in pipeline_data[region_key]:
+                        pipeline_data[region_key]["sector_daily"] = {}
+                    pipeline_data[region_key]["sector_daily"][sec] = sec_result
 
             # Merge new assessments with old ones outside the window
             old_merged_df = data.get("merged_df", pd.DataFrame())

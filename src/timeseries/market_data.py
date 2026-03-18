@@ -78,6 +78,9 @@ def merge_sentiment_and_market(
         logger.warning("Cannot merge — one or both DataFrames are empty")
         return sentiment_df
 
-    merged = pd.merge(sentiment_df, market_df, on="date", how="inner")
-    logger.info(f"Merged {len(merged)} trading days with sentiment data")
+    merged = pd.merge(sentiment_df, market_df, on="date", how="left")
+    for col in ["sp500_close", "sp500_return", "sp500_direction"]:
+        if col in merged.columns:
+            merged[col] = merged[col].ffill()
+    logger.info(f"Merged {len(merged)} days with sentiment data (including non-trading days)")
     return merged

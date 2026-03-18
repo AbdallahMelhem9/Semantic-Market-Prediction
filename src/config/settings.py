@@ -69,6 +69,7 @@ class SecretsConfig:
     huggingface_token: str = ""
     groq_api_key: str = ""
     openrouter_api_key: str = ""
+    finnhub_api_key: str = ""
 
 
 @dataclass
@@ -147,6 +148,7 @@ def _build_settings(raw: dict[str, Any], root: Path) -> Settings:
             huggingface_token=os.getenv("HUGGINGFACE_TOKEN", ""),
             groq_api_key=os.getenv("GROQ_API_KEY", ""),
             openrouter_api_key=os.getenv("OPENROUTER_API_KEY", ""),
+            finnhub_api_key=os.getenv("FINNHUB_API_KEY", ""),
         ),
         sectors=raw.get("sectors", []),
         sector_etfs=raw.get("sector_etfs", {}),

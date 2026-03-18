@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 
-def create_sector_heatmap(scored_df: pd.DataFrame) -> go.Figure:
+def create_sector_heatmap(scored_df: pd.DataFrame, sector_daily: dict = None) -> go.Figure:
     """Sector × days heatmap color-coded by average recession fear."""
     if scored_df.empty or "sectors" not in scored_df.columns:
         return _empty_figure("No sector data")
@@ -50,6 +50,17 @@ def create_sector_heatmap(scored_df: pd.DataFrame) -> go.Figure:
     if pivot.empty:
         return _empty_figure("No sector data")
 
+    # Override with LLM daily scores for key sectors
+    if sector_daily:
+        for sec, assessments in sector_daily.items():
+            if sec in pivot.index:
+                for a in assessments:
+                    d = a.get("date")
+                    if isinstance(d, str):
+                        d = pd.to_datetime(d).date()
+                    if d in pivot.columns:
+                        pivot.loc[sec, d] = a.get("daily_fear", pivot.loc[sec, d])
+
     # Sort dates
     pivot = pivot[sorted(pivot.columns)]
 
@@ -66,8 +77,8 @@ def create_sector_heatmap(scored_df: pd.DataFrame) -> go.Figure:
     fig.update_layout(
         title=dict(text="Sector Sentiment Heatmap", font=dict(size=13)),
         template="plotly_dark",
-        height=350,
-        margin=dict(l=90, r=30, t=40, b=40),
+        height=400,
+        margin=dict(l=90, r=30, t=40, b=80),
         xaxis=dict(tickangle=-45),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",

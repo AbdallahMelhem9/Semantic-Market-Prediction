@@ -1,135 +1,137 @@
 # Semantic Market Prediction
 
-An LLM-powered sentiment analysis tool for financial news that quantifies recession fears across US and European markets, correlates sentiment with real market indices, and predicts next-day market direction.
+LLM-powered sentiment analysis for financial news. Scores recession fear across US and European markets, correlates it with real market indices, and predicts next-day direction.
 
 Built for the BNP Paribas Equity & Derivatives Strategy team.
 
 ## What It Does
 
-The tool collects financial news articles from multiple sources, has an LLM read and score each one for recession fear on a 0 to 10 scale, then builds a daily sentiment timeseries. That timeseries is compared against actual market performance (S&P 500 for the US, Euro Stoxx 50 for Europe). An XGBoost model trained on 2 years of historical VIX data predicts whether the market will go up or down tomorrow.
+Collects financial news from multiple APIs, has GPT-5.4 read and score each article for recession fear (0 to 10), then builds a daily sentiment timeseries compared against the S&P 500 (US) and Euro Stoxx 50 (Europe). An XGBoost model trained on 2 years of VIX data predicts whether the market goes up or down tomorrow.
 
-There's also a standalone accuracy evaluation script (`metric.py`) that backtests the predictions against real market data and reports direction accuracy, confidence-weighted hit rates, and lag correlations.
+Also includes a chatbot (Claude 4.6) that can answer questions about the data, and a standalone accuracy evaluation script (`metric.py`) for backtesting predictions against real market movements.
 
 ## Data Sources
 
-News comes from three APIs that complement each other:
+News comes from three APIs that complement each other.
 
-**NewsAPI** is the primary source. It returns full articles (title, description, body text) for the last 30 days. The free tier caps at 100 articles per request, so the keywords are tuned to focus on recession-relevant topics: "recession", "Fed rate", "unemployment", "inflation", "GDP", "consumer confidence".
+**NewsAPI** is the primary source. Full articles (title, description, body) for the last 30 days. Free tier caps at 100 per request, so keywords focus on recession-relevant topics: "recession", "Fed rate", "unemployment", "inflation", "GDP", "consumer confidence".
 
-**Finnhub** fills in company-specific coverage. It fetches headlines and summaries across 16 major US tickers (AAPL, MSFT, JPM, XOM, etc.) spanning Tech, Finance, Energy, Healthcare, Consumer, and Industrials. This gives sector-level depth that general news queries miss.
+**Finnhub** fills company-specific coverage. Fetches headlines and summaries across 16 major US tickers (AAPL, MSFT, JPM, XOM, etc.) spanning Tech, Finance, Energy, Healthcare, Consumer, and Industrials. Gives sector-level depth that general queries miss.
 
-**Google News RSS** is a free fallback for historical gaps. It only returns titles (no article body), so it's lower quality. The pipeline only uses Google News articles older than 7 days, where NewsAPI coverage is thinnest.
+**Google News RSS** is a free fallback for historical gaps. Title-only (no body), so lower quality. The pipeline only uses Google News articles older than 7 days, where NewsAPI coverage thins out.
 
-All three sources are deduplicated by URL before scoring. The final dataset is capped at 300 articles across a maximum of 35 days.
+All sources are deduplicated by URL before scoring. Final dataset caps at 300 articles across 35 days max.
 
 ## Text Cleaning
 
-Before any article reaches the LLM, it goes through a cleaning pipeline (`src/ingestion/text_cleaner.py`) that strips HTML tags, removes NewsAPI's `[+1234 chars]` truncation markers, cleans encoding artifacts (non-breaking spaces, zero-width characters, BOM), removes URLs, and collapses whitespace. Articles shorter than 15 characters after cleaning are flagged as unusable. This ensures the LLM scores clean, consistent text regardless of which API the article came from.
+Before anything reaches the LLM, articles go through `src/ingestion/text_cleaner.py`. Strips HTML tags, removes NewsAPI's `[+1234 chars]` truncation markers, cleans encoding artifacts (non-breaking spaces, zero-width characters, BOM), removes URLs, collapses whitespace. Articles shorter than 15 characters after cleaning get flagged unusable. This keeps LLM input clean regardless of which API the article came from.
 
 ## How Scoring Works
 
-I tried three approaches and settled on what worked best.
+Tried three approaches and settled on what worked best.
 
-**Simple averaging** was the first attempt. Score each article individually, average all scores for the day. The problem: a single "Fed emergency rate cut" article gets diluted by 15 routine earnings reports. The daily score doesn't reflect the true severity.
+**Simple averaging** was first. Score each article, average all scores for the day. Problem: a single "Fed emergency rate cut" article gets diluted by 15 routine earnings reports.
 
-**LLM daily assessment** was the second attempt. Give the LLM all articles for a given day plus the previous days' market data, and ask it to produce one daily score weighing article importance. Much better. The LLM can recognize that one major event matters more than many minor ones.
+**LLM daily assessment** was second. Give the LLM all articles for a day plus previous market data, ask for one daily score weighing importance. Much better. The LLM recognizes that one major event matters more than many minor ones.
 
-**Ensemble** is what we actually use. Run the daily assessment with both GPT-5.4 and Claude 4.6, then average their daily fear scores. This reduces model-specific biases and produces more stable, reliable sentiment readings.
+**Ensemble** is what we use. Run the daily assessment with both GPT-5.4 and Claude 4.6, average their fear scores. Reduces model-specific bias and produces more stable readings.
 
 ### No Data Leakage
 
-Each day's assessment only sees market data from previous days, never the current day or future. Day 1 gets the prior week's S&P 500 closes. Day 2 gets Day 1's assessment plus market data. This is critical for honest backtesting.
+Each day's assessment only sees market data from previous days. Never the current day or future. Day 1 gets the prior week's S&P 500 closes. Day 2 gets Day 1's assessment plus market data. Critical for honest backtesting.
 
-### Per-Article vs Per-Day Scoring
+### Per-Article vs Per-Day
 
-**Per-article scores** (GPT-5.4) are used for the sector breakdown, article browser, and stock mentions. **Per-day ensemble** (GPT-5.4 + Claude 4.6) powers the main sentiment timeseries and predictions. Sector views still use per-article averages, which works well at that granularity.
+Per-article scores (GPT-5.4) feed the sector breakdown, article browser, and stock mentions. The per-day ensemble (GPT-5.4 + Claude 4.6) powers the main sentiment timeseries and predictions. Financials and Energy get their own dedicated GPT-5.4 daily assessments with sector-specific prompts, while other sectors use per-article averages.
 
 ## Prediction
 
-Two independent prediction methods shown side by side in the dashboard.
+Two independent methods shown side by side.
 
-**XGBoost model** is trained on 2 years of VIX (CBOE Volatility Index) and S&P 500 data, roughly 500 trading days. Features include the daily fear score, 3-day and 7-day rolling averages, volatility, article volume, and momentum. The train/test split is time-based 70/30 with no random shuffle, because financial data requires chronological splits to avoid leakage. Outputs next-day direction (bullish/bearish) with a confidence score.
+**XGBoost** trained on 2 years of VIX and S&P 500 data (~500 trading days). Features: daily fear, 3/7-day rolling averages, volatility, article count, momentum. Time-based 70/30 train/test split, no random shuffle (financial data needs chronological splits). Outputs next-day direction with confidence.
 
-**LLM forecast** gives the LLM the last 7 days of fear scores and S&P 500 prices, then asks it to reason about what comes next. It provides direction, confidence, and a written explanation.
+**LLM forecast** gives Claude the last 7 days of fear scores and S&P prices, asks it to reason about what happens next. Returns direction, confidence, and a written explanation.
 
-The dashboard shows both forecasts together so you can see where they agree or disagree.
+Dashboard shows both so you can see where they agree or disagree.
 
 ## Accuracy Evaluation
 
-`metric.py` runs a backtest against actual S&P 500 data. It converts each day's fear score into a directional prediction (fear above 5 means predict down, below 5 means predict up), then checks if the market actually moved that way the next trading day. The report includes:
+`metric.py` backtests against actual S&P 500 data. Converts each day's fear score into a directional prediction (above 5 = predict down, below 5 = predict up), checks if the market moved that way next trading day.
 
-**Direction accuracy** shows a day-by-day table of predictions vs actual market movements, with a hit/miss count and comparison against a 50% coin-flip baseline.
-
-**Confidence-weighted accuracy** splits predictions into bands based on how far the fear score was from neutral (5). Extreme readings (fear below 2 or above 8) are "high confidence" signals, while readings near 4-6 are "low confidence". This reveals whether the model is more reliable when it's making a strong call.
-
-**Lag correlations** (Pearson and Spearman) measure whether fear at day T predicts returns at T+1, T+2, T+3. The script explains each correlation, whether the signal is predictive or contrarian, and flags statistically significant results.
+Reports direction accuracy with day-by-day table, confidence-weighted accuracy split by signal strength (extreme readings vs neutral), and lag correlations (Pearson and Spearman) measuring whether fear at day T predicts returns at T+1, T+2, T+3.
 
 ## The Pipeline
 
-Each run goes through these steps. US and Europe run in parallel via ThreadPoolExecutor, so both regions score simultaneously.
+Each run goes through these steps. US and Europe run in parallel via ThreadPoolExecutor.
 
-1. **Fetch articles** from NewsAPI for recent headlines, Finnhub for company-specific coverage, and Google News RSS for historical context. Articles are cached for 24 hours so re-runs don't waste API calls.
-2. **Clean text** by stripping HTML, truncation markers, encoding artifacts, and URLs from all article fields before they reach the LLM.
-3. **Score articles** with GPT-5.4 reading each article and returning recession_fear (0-10), market_sentiment (bearish/neutral/bullish), confidence, rationale, and sector tags. 10 articles are scored concurrently via ThreadPoolExecutor. Results are cached per model.
-4. **Fetch market data** for S&P 500 or Euro Stoxx 50 via yfinance, going back 14 days before the earliest article so the daily assessment has prior market context.
-5. **Ensemble daily assessment** where both GPT-5.4 and Claude 4.6 see all articles plus previous market data for each day. Their daily fear scores are averaged. Results are cached so subsequent runs skip this step.
-6. **Build timeseries** with daily scores, 3-day and 7-day rolling averages, momentum, and volatility.
-7. **Merge with market** by aligning sentiment dates with trading days.
-8. **Lag correlation** computing Pearson and Spearman correlation at T+0, T+1, T+2, T+3, T+5 to measure predictive power.
-9. **XGBoost prediction** trained on historical VIX data, predicting with live sentiment features.
-10. **LLM forecast** where Claude reasons about next-day direction from recent data.
+1. **Fetch articles** from NewsAPI, Finnhub, and Google News RSS. Cached 24 hours.
+2. **Clean text** by stripping HTML, truncation markers, encoding artifacts, URLs.
+3. **Score articles** with GPT-5.4. 10 concurrent workers via ThreadPoolExecutor. Cached per model.
+4. **Fetch market data** for S&P 500 or Euro Stoxx 50 via yfinance, going back 14 days before earliest article.
+5. **Daily assessment** runs 4 parallel streams: GPT-5.4 overall, Claude 4.6 overall (averaged for ensemble), GPT-5.4 Financials, GPT-5.4 Energy. Each stream processes days sequentially for sentiment continuity. Cached.
+6. **Build timeseries** with daily scores, rolling averages, momentum, volatility.
+7. **Merge with market** aligning sentiment dates with trading days.
+8. **Lag correlation** at T+0 through T+5.
+9. **XGBoost prediction** trained on VIX history, predicting with live features.
+10. **LLM forecast** where Claude reasons about next-day direction.
 
 ## Rescoring
 
-The dashboard lets you switch LLM models and rescore articles. When you hit "Re-score", it respects the currently selected time window. If you're viewing the last 3 days, only those articles get rescored while older scores are preserved. This saves both time and API costs compared to rescoring the full 30-day dataset.
+The dashboard lets you switch models and rescore. Hit "Re-score" and it respects the selected time window. Viewing last 3 days? Only those articles get rescored, older scores stay. Also re-runs Financials and Energy sector assessments for the window. Saves time and API costs vs rescoring the full 30 days.
 
-## Caching Strategy
+## Caching
 
-Everything is cached to minimize API costs and speed up re-runs.
+Everything cached to minimize costs and speed up restarts.
 
-**News articles** are cached for 24 hours and won't be refetched until stale. **Per-model article scores** are cached per model name (e.g., `gpt54_us`, `claude46_us`). Switching models in the UI and clicking "Re-score" only scores articles not already cached for that model. **Ensemble daily assessment** is cached as `ensemble_daily_us` and loads instantly on restart. **Market data** is fetched fresh each run since yfinance is free and fast.
+**News articles** cached 24 hours. **Article scores** cached per model name (`gpt54_us`, `claude46_us`). Switching models only scores articles not already cached. **Ensemble daily** and **sector daily** cached separately, load instantly on restart. **Market data** fetched fresh (yfinance is free and fast).
 
-On a warm cache, the dashboard launches in seconds.
+Warm cache = dashboard launches in seconds.
 
-## Multi-Region Support
+## Multi-Region
 
-The tool analyzes US and Europe independently.
+US and Europe analyzed independently.
 
-**US** uses NewsAPI US business headlines plus Finnhub company news, scored with a US-specific prompt focused on Fed rate decisions, unemployment, and consumer confidence. Results are compared against the S&P 500 and US sector ETFs (XLK, XLE, XLF, XLV).
+**US** uses NewsAPI headlines plus Finnhub company news, scored with US-specific prompts (Fed, unemployment, consumer confidence). Compared against S&P 500 and sector ETFs (XLK, XLE, XLF, XLV, XLY, XLI, XLP, XLB, XLU, XLRE, XLC).
 
-**Europe** uses the same sources with European keywords like ECB policy, eurozone, energy crisis, and PMI. Articles are scored with an EU-specific prompt and compared against Euro Stoxx 50 and European sector ETFs.
+**Europe** uses same sources with European keywords (ECB, eurozone, energy crisis, PMI). EU-specific prompts, compared against Euro Stoxx 50 and European sector ETFs.
 
-Region-specific few-shot examples in the prompts ensure the LLM understands that "the Fed held rates steady" is a US signal while "ECB hawkishness" is a European one.
+Few-shot examples in prompts teach the LLM that "Fed held rates steady" is US while "ECB hawkishness" is European.
 
-## Dashboard Features
+## Chatbot
 
-**Region toggle** to switch between US and Europe. **Fear gauge** showing overall market fear as a semicircular indicator. **Dual forecast** with XGBoost prediction and LLM analysis side by side with confidence scores.
+3-step architecture powered by Claude 4.6.
 
-**Sentiment vs market chart** plotting recession fear (inverted axis) against S&P 500 or sector ETFs. When you select a sector, the chart swaps to that sector's corresponding ETF (Energy to XLE, Technology to XLK, Finance to XLF, Healthcare to XLV). The overall "All" view uses the full ensemble daily assessment while sector views use per-article score averaging.
+**Step 1** resolves the query using chat history and current dashboard filters. If you're viewing US/Energy and ask "what's the sentiment?", it knows you mean US Energy. If you explicitly ask about Europe, it overrides.
 
-**Lag correlation heatmap** showing whether sentiment at day T predicts market movement at T+1, T+3, etc. **Sector heatmap** displaying fear levels across sectors over time, with dedicated LLM assessments for Financials and Energy overriding simple averages. **Sector vs ETF comparison** plotting each sector's fear against its corresponding ETF. **Stock mentions** showing companies extracted from article titles with their fear scores.
+**Step 2** classifies into one of 8 task types (factual, sector, prediction, correlation, comparison, summary, methodology, other) and fetches only the relevant data slice.
 
-**Article browser** with newspaper-style cards sorted by fear. Hover to see sector tags, sentiment badge, and LLM rationale. **Chatbot** powered by Claude 4.6 with full access to article data, so you can ask things like "What caused the sentiment drop on March 13?" and get answers referencing specific articles.
+**Step 3** sends a specialized prompt with the sliced data to Claude, streamed back in real-time.
 
-**Model selector** supporting GPT-5.4, Claude Sonnet 4.6, Llama 3.3 70B, DeepSeek R1, or local Ollama. **Time window filter** for 3, 7, 14, or 30 days, which also controls rescoring scope.
+Methodology questions are answered instantly from hardcoded responses, no LLM call needed.
+
+## Dashboard
+
+Region toggle (US/Europe). Fear gauge. Dual forecast panel (XGBoost + LLM side by side).
+
+Sentiment vs market chart with inverted fear axis against S&P 500 or sector ETFs. Selecting a sector swaps to its ETF. Lag correlation heatmap. Sector heatmap with dedicated LLM scores for Financials and Energy. Sector vs ETF comparison. Stock mentions extracted from titles.
+
+Article browser with newspaper-style cards sorted by fear. Time window filter (3 days, 1 week, 2 weeks, 1 month) controls both display and rescoring scope.
+
+Sectors use the 11 GICS standard: Technology, Healthcare, Financials, Energy, Consumer Discretionary, Consumer Staples, Industrials, Materials, Utilities, Real Estate, Communication Services.
 
 ## LLM Backends
 
-All accessed through OpenRouter with a single API key:
+All through OpenRouter (one API key):
 
 | Model | Use | Cost |
 |-------|-----|------|
-| GPT-5.4 | Default article scoring | ~$0.20/run |
-| Claude Sonnet 4.6 | Ensemble daily assessment + chatbot | ~$0.30/run |
+| GPT-5.4 | Article scoring + sector daily assessment | ~$0.20/run |
+| Claude Sonnet 4.6 | Ensemble daily + chatbot | ~$0.30/run |
 | Llama 3.3 70B | Free alternative for scoring | Free |
-| DeepSeek R1 | Free alternative (slower, reasoning model) | Free |
+| DeepSeek R1 | Free alternative, slower | Free |
 | Ollama | Local scoring if installed | Free |
 
-A typical first run costs about $0.50 for GPT-5.4 article scoring plus Claude ensemble. Re-runs with cached scores cost nothing.
-
-## Performance and Parallelism
-
-**Region-level parallelism** runs the US and Europe pipelines simultaneously in separate threads. **Article-level parallelism** scores 10 articles concurrently via ThreadPoolExecutor, handling 70 articles in about 45 seconds instead of 12 minutes sequentially. **Caching** means all API results are saved to disk and warm restarts skip LLM calls entirely. **Rate limiting** uses exponential backoff with retries on API failures from OpenRouter and yfinance.
+First run ~$0.50 (GPT articles + Claude ensemble). Cached re-runs cost nothing.
 
 ## Quick Start
 
@@ -146,11 +148,11 @@ cp .env.example .env
 python run.py
 # Open http://127.0.0.1:8050
 
-# Run accuracy evaluation
+# Backtest accuracy
 python metric.py
 ```
 
-First run takes about 2 minutes for fetching, scoring, and ensemble assessment. Subsequent runs with cache take about 10 seconds.
+First run takes ~2 minutes (fetch + score + ensemble). Cached runs ~10 seconds.
 
 ## Project Structure
 
@@ -162,10 +164,16 @@ src/
   timeseries/      Daily aggregation, market data (yfinance), lag correlation
   prediction/      XGBoost (VIX-trained), feature engineering, LLM forecast
   visualization/   Plotly charts (sentiment, sectors, gauge, stocks, ETF comparison)
-  chatbot/         Claude 4.6 Q&A with article context
+  chatbot/         Claude 4.6 chat with 3-step routing, streaming, 8 prompt types
   dashboard/       Dash app, layout, callbacks, article browser
-  pipeline.py      Orchestrator (parallel regions, caching, ensemble)
+  pipeline.py      Orchestrator (parallel regions, caching, ensemble, sector assessment)
 
 prompts/           Versioned LLM prompts (US, EU, daily assessment, chat, sector)
 metric.py          Backtest predictions against actual S&P 500 movements
 ```
+
+## Deployment
+
+Deployed on Render: https://semantic-market-prediction.onrender.com
+
+Free tier. First load after idle takes ~30 seconds to wake, then ~2 minutes for the pipeline.

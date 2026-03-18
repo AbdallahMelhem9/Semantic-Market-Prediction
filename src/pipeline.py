@@ -1,5 +1,5 @@
 import logging
-from datetime import date
+from datetime import date, timedelta
 
 import pandas as pd
 import yaml
@@ -48,10 +48,8 @@ def run_pipeline_for_region(settings: Settings, region_key: str, region_config: 
         articles_df = fetch_news(settings)
 
     # Supplement with additional sources (only if we need more date coverage)
-    MAX_RECENT = 70     # last 7 days
-    MAX_HISTORICAL = 100  # weeks 2-5
-    MAX_TOTAL = 170
-    MAX_DAYS = 35       # ~5 weeks to catch more Google News
+    MAX_TOTAL = 300
+    MAX_DAYS = 35       # ~5 weeks to catch more historical
 
     needs_supplement = not cache.has_fresh_cached_news(settings) or (not articles_df.empty and articles_df["date"].nunique() < 7)
 
@@ -62,7 +60,7 @@ def run_pipeline_for_region(settings: Settings, region_key: str, region_config: 
         # Google News RSS — ONLY for historical (>7 days old, title-only = lower quality)
         try:
             from src.ingestion.google_news_client import fetch_google_news
-            gn_df = fetch_google_news(keywords, max_articles=MAX_HISTORICAL)
+            gn_df = fetch_google_news(keywords, max_articles=150)
             if not gn_df.empty:
                 gn_df["date"] = pd.to_datetime(gn_df["date"]).dt.date
                 cutoff_7d = date.today() - timedelta(days=7)
@@ -77,22 +75,16 @@ def run_pipeline_for_region(settings: Settings, region_key: str, region_config: 
         except Exception as e:
             logger.warning(f"Google News failed: {e}")
 
-    # Enforce: only last 28 days, 70 recent (last 7d) + 100 historical (weeks 2-4)
+    # Enforce: only last 35 days, cap total at MAX_TOTAL
     if not articles_df.empty and "date" in articles_df.columns:
         articles_df["date"] = pd.to_datetime(articles_df["date"]).dt.date
-        from datetime import timedelta
 
         cutoff_old = date.today() - timedelta(days=MAX_DAYS)
-        cutoff_7d = date.today() - timedelta(days=7)
-
         articles_df = articles_df[articles_df["date"] >= cutoff_old]
-
-        recent = articles_df[articles_df["date"] >= cutoff_7d].sort_values("published_at", ascending=False).head(MAX_RECENT)
-        historical = articles_df[articles_df["date"] < cutoff_7d].sort_values("published_at", ascending=False).head(MAX_HISTORICAL)
-        articles_df = pd.concat([recent, historical], ignore_index=True)
+        articles_df = articles_df.sort_values("published_at", ascending=False).head(MAX_TOTAL)
 
         n_days = articles_df["date"].nunique()
-        logger.info(f"[{region_key}] Final: {len(recent)} recent + {len(historical)} historical = {len(articles_df)} articles across {n_days} days")
+        logger.info(f"[{region_key}] Final: {len(articles_df)} articles across {n_days} days")
 
     cache.save_news(articles_df, settings)
 
@@ -145,17 +137,28 @@ def run_pipeline_for_region(settings: Settings, region_key: str, region_config: 
     market_df = pd.DataFrame()
     scored_df["date"] = pd.to_datetime(scored_df["date"]).dt.date
     if not scored_df.empty:
-        from datetime import timedelta
         dates = scored_df["date"].tolist()
         min_date = min(dates) - timedelta(days=14)
         max_date = max(dates)
         market_df = _fetch_market_index(market_index, min_date, max_date)
 
-    # Step 4: Ensemble Daily Assessment (GPT-5.4 + Claude 4.6 averaged)
-    logger.info(f"[{region_key}] Step 4: Ensemble Daily Assessment")
+    # Step 4: Ensemble Daily Assessment + Sector Assessments (parallel)
+    logger.info(f"[{region_key}] Step 4: Ensemble Daily Assessment + Sector Assessments")
     ensemble_daily_cache = f"ensemble_daily_{region_key}"
     cached_daily = cache.load_scored(ensemble_daily_cache)
     daily_assessments = []
+    sector_daily = {}
+    KEY_SECTORS = ["Financials", "Energy"]
+
+    # Load sector caches
+    for sec in KEY_SECTORS:
+        sec_cache_name = f"sector_daily_{sec.lower()}_{region_key}"
+        cached_sec = cache.load_scored(sec_cache_name)
+        if not cached_sec.empty:
+            if "date" in cached_sec.columns:
+                cached_sec["date"] = pd.to_datetime(cached_sec["date"]).dt.date
+            sector_daily[sec] = cached_sec.to_dict(orient="records")
+            logger.info(f"[{region_key}] Loaded {sec} daily from cache ({len(sector_daily[sec])} days)")
 
     if not cached_daily.empty:
         if "date" in cached_daily.columns:
@@ -165,22 +168,39 @@ def run_pipeline_for_region(settings: Settings, region_key: str, region_config: 
     else:
         try:
             from src.analysis.daily_assessor import assess_daily_sentiment
+            from concurrent.futures import ThreadPoolExecutor, as_completed
 
-            # GPT-5.4 daily assessment
             gpt_settings = copy.deepcopy(settings)
             gpt_settings.llm.backend = "openrouter"
             gpt_settings.llm.model = "openai/gpt-5.4"
-            gpt_daily = assess_daily_sentiment(gpt_settings, scored_df, market_df)
-            logger.info(f"[{region_key}] GPT-5.4 assessed {len(gpt_daily)} days")
 
-            # Claude 4.6 daily assessment
             claude_settings = copy.deepcopy(settings)
             claude_settings.llm.backend = "openrouter"
             claude_settings.llm.model = "anthropic/claude-sonnet-4.6"
-            claude_daily = assess_daily_sentiment(claude_settings, scored_df, market_df)
-            logger.info(f"[{region_key}] Claude 4.6 assessed {len(claude_daily)} days")
 
-            # Ensemble: average daily_fear from both
+            # Run 4 streams in parallel: GPT overall, Claude overall, GPT Financials, GPT Energy
+            results = {}
+            with ThreadPoolExecutor(max_workers=4) as pool:
+                futures = {
+                    pool.submit(assess_daily_sentiment, copy.deepcopy(gpt_settings), scored_df.copy(), market_df): "gpt_overall",
+                    pool.submit(assess_daily_sentiment, copy.deepcopy(claude_settings), scored_df.copy(), market_df): "claude_overall",
+                }
+                for sec in KEY_SECTORS:
+                    futures[pool.submit(assess_daily_sentiment, copy.deepcopy(gpt_settings), scored_df.copy(), market_df, sec)] = f"gpt_{sec}"
+
+                for future in as_completed(futures):
+                    key = futures[future]
+                    try:
+                        results[key] = future.result()
+                        logger.info(f"[{region_key}] {key}: assessed {len(results[key])} days")
+                    except Exception as e:
+                        logger.warning(f"[{region_key}] {key} failed: {e}")
+                        results[key] = []
+
+            gpt_daily = results.get("gpt_overall", [])
+            claude_daily = results.get("claude_overall", [])
+
+            # Ensemble: average GPT + Claude for overall
             if gpt_daily and claude_daily and len(gpt_daily) == len(claude_daily):
                 daily_assessments = []
                 for g, c in zip(gpt_daily, claude_daily):
@@ -192,12 +212,24 @@ def run_pipeline_for_region(settings: Settings, region_key: str, region_config: 
             else:
                 daily_assessments = gpt_daily or claude_daily or []
 
-            # Cache ensemble daily (convert dates to strings for JSON)
+            # Cache ensemble daily
             if daily_assessments:
                 daily_cache_df = pd.DataFrame(daily_assessments)
                 if "date" in daily_cache_df.columns:
                     daily_cache_df["date"] = daily_cache_df["date"].astype(str)
                 cache.save_scored(daily_cache_df, ensemble_daily_cache)
+
+            # Sector daily assessments (GPT only, no ensemble)
+            for sec in KEY_SECTORS:
+                sec_result = results.get(f"gpt_{sec}", [])
+                if sec_result:
+                    sector_daily[sec] = sec_result
+                    sec_cache_name = f"sector_daily_{sec.lower()}_{region_key}"
+                    sec_df = pd.DataFrame(sec_result)
+                    if "date" in sec_df.columns:
+                        sec_df["date"] = sec_df["date"].astype(str)
+                    cache.save_scored(sec_df, sec_cache_name)
+
         except Exception as e:
             logger.warning(f"[{region_key}] Daily assessment failed, using averages: {e}")
 
@@ -240,6 +272,16 @@ def run_pipeline_for_region(settings: Settings, region_key: str, region_config: 
     except Exception as e:
         logger.warning(f"LLM forecast failed: {e}")
 
+    # Load sector daily assessments from cache (if available)
+    sector_daily = {}
+    for sec in ["Financials", "Energy"]:
+        sec_cache_name = f"sector_daily_{sec.lower()}_{region_key}"
+        cached_sec = cache.load_scored(sec_cache_name)
+        if not cached_sec.empty:
+            if "date" in cached_sec.columns:
+                cached_sec["date"] = pd.to_datetime(cached_sec["date"]).dt.date
+            sector_daily[sec] = cached_sec.to_dict(orient="records")
+
     return {
         "region_key": region_key,
         "region_name": region_name,
@@ -250,6 +292,7 @@ def run_pipeline_for_region(settings: Settings, region_key: str, region_config: 
         "corr_df": corr_df,
         "prediction": prediction,
         "llm_forecast": llm_forecast,
+        "sector_daily": sector_daily,
     }
 
 

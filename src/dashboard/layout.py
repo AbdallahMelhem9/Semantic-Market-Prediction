@@ -34,10 +34,12 @@ def create_layout() -> dbc.Container:
                             dcc.Dropdown(
                                 id="filter-days",
                                 options=[
-                                    {"label": "Last 8 days", "value": 8},
-                                    {"label": "3 months", "value": 90},
+                                    {"label": "Last 3 days", "value": 3},
+                                    {"label": "Last week", "value": 7},
+                                    {"label": "Last 2 weeks", "value": 14},
+                                    {"label": "Last month", "value": 30},
                                 ],
-                                value=8,
+                                value=7,
                                 clearable=False,
                             ),
                         ], className="sidebar-section"),
@@ -128,7 +130,9 @@ def create_layout() -> dbc.Container:
                                 ),
                                 dbc.Button("Send", id="btn-chat", color="primary", size="sm"),
                             ], size="sm"),
-                            dbc.Spinner(html.Div(id="chat-loading"), color="primary", size="sm"),
+                            html.Div(id="chat-loading"),
+                            dcc.Interval(id="chat-stream-interval", interval=250, disabled=True),
+                            dcc.Store(id="store-chat-streaming", data=False),
                         ], className="chat-container"),
 
                         # Disclaimer

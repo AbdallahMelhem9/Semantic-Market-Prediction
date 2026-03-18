@@ -15,6 +15,7 @@ def create_app(pipeline_data: dict = None) -> dash.Dash:
         __name__,
         external_stylesheets=[dbc.themes.DARKLY],
         suppress_callback_exceptions=True,
+        prevent_initial_callbacks="initial_duplicate",
         title="Semantic Market Prediction",
     )
 

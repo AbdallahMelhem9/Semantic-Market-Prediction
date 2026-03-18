@@ -5,26 +5,38 @@ import pandas as pd
 
 
 SECTOR_COLORS = {
+    # 11 GICS sectors
     "Technology": "#3b82f6",
-    "Finance": "#22c55e",
-    "Energy": "#f97316",
     "Healthcare": "#a855f7",
-    "Consumer": "#ec4899",
-    "Industrial": "#eab308",
-    "Government": "#06b6d4",
-    "Automotive": "#f43f5e",
+    "Financials": "#22c55e",
+    "Energy": "#f97316",
+    "Consumer Discretionary": "#ec4899",
+    "Consumer Staples": "#f472b6",
+    "Industrials": "#eab308",
+    "Materials": "#fb923c",
+    "Utilities": "#facc15",
     "Real Estate": "#84cc16",
+    "Communication Services": "#06b6d4",
+    # Legacy names from old cache
+    "Finance": "#22c55e",
+    "Industrial": "#eab308",
+    "Consumer": "#ec4899",
+    "Government": "#64748b",
+    "Automotive": "#f43f5e",
     "Media": "#8b5cf6",
     "Retail": "#14b8a6",
     "Transportation": "#d946ef",
     "Aerospace": "#0ea5e9",
-    "Utilities": "#facc15",
-    "Materials": "#fb923c",
     "Other": "#6b7280",
 }
 
+_FALLBACK_COLORS = [
+    "#ff6b6b", "#4ecdc4", "#45b7d1", "#96ceb4", "#ffeaa7",
+    "#dfe6e9", "#fd79a8", "#6c5ce7", "#00b894", "#e17055",
+]
 
-def create_sector_timeseries(scored_df: pd.DataFrame) -> go.Figure:
+
+def create_sector_timeseries(scored_df: pd.DataFrame, sector_daily: dict = None) -> go.Figure:
     if scored_df.empty or "sectors" not in scored_df.columns:
         return _empty_figure("No sector data")
 
@@ -50,7 +62,9 @@ def create_sector_timeseries(scored_df: pd.DataFrame) -> go.Figure:
 
     fig = go.Figure()
     for sector in pivot.columns:
-        color = SECTOR_COLORS.get(sector, "#6b7280")
+        color = SECTOR_COLORS.get(sector)
+        if color is None:
+            color = _FALLBACK_COLORS[len([s for s in pivot.columns[:list(pivot.columns).index(sector)] if s not in SECTOR_COLORS]) % len(_FALLBACK_COLORS)]
         fig.add_trace(go.Scatter(
             x=pivot.index, y=pivot[sector],
             name=sector, line=dict(color=color, width=2),
@@ -60,11 +74,11 @@ def create_sector_timeseries(scored_df: pd.DataFrame) -> go.Figure:
     fig.update_layout(
         title=dict(text="Sector Sentiment Over Time", font=dict(size=13)),
         template="plotly_dark",
-        height=350,
+        height=420,
         yaxis_title="Recession Fear",
         yaxis=dict(autorange="reversed"),
-        legend=dict(orientation="h", y=-0.15, x=0.5, xanchor="center", font=dict(size=9)),
-        margin=dict(l=50, r=30, t=40, b=50),
+        legend=dict(orientation="h", y=-0.25, x=0.5, xanchor="center", font=dict(size=9)),
+        margin=dict(l=50, r=30, t=40, b=90),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(family="Inter", size=10),

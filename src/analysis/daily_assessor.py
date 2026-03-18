@@ -15,17 +15,34 @@ def assess_daily_sentiment(
     settings: Settings,
     scored_df: pd.DataFrame,
     market_df: pd.DataFrame = None,
+    sector: str = "",
 ) -> list[dict]:
     """For each day, give the LLM ALL articles + YESTERDAY's market data.
 
     Strictly no future leakage: day N only sees market data up to day N-1.
+    If sector is specified, only include articles tagged with that sector.
     """
     if scored_df.empty:
         return []
 
-    prompt_template = _load_prompt(settings)
+    prompt_template = _load_prompt(settings, sector=sector)
     scored_df = scored_df.copy()
     scored_df["date"] = pd.to_datetime(scored_df["date"]).dt.date
+
+    if sector:
+        import ast
+        def _has_sector(val, target):
+            if isinstance(val, list): return target in val
+            if isinstance(val, str):
+                try:
+                    parsed = ast.literal_eval(val)
+                    if isinstance(parsed, list): return target in parsed
+                except (ValueError, SyntaxError): pass
+                return target in val
+            return False
+        scored_df = scored_df[scored_df["sectors"].apply(lambda x: _has_sector(x, sector))]
+        if scored_df.empty:
+            return []
 
     # Build market lookup from actual data
     market_lookup = {}
@@ -102,8 +119,13 @@ def assess_daily_sentiment(
     return assessments
 
 
-def _load_prompt(settings: Settings) -> str:
-    path = Path(settings.paths.prompts) / "daily_assessment_v1.txt"
+def _load_prompt(settings: Settings, sector: str = "") -> str:
+    prompts_dir = Path(settings.paths.prompts)
+    if sector:
+        sector_path = prompts_dir / f"daily_assessment_{sector.lower()}_v1.txt"
+        if sector_path.exists():
+            return sector_path.read_text(encoding="utf-8")
+    path = prompts_dir / "daily_assessment_v1.txt"
     if path.exists():
         return path.read_text(encoding="utf-8")
     return "Assess these articles:\n{{ARTICLES}}\nMarket: {{MARKET_DATA}}\nReturn JSON with daily_fear, direction, confidence, key_driver, reasoning."

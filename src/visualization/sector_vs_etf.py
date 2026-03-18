@@ -9,19 +9,17 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 SECTOR_ETFS_US = {
-    "Technology": "XLK",
-    "Finance": "XLF",
-    "Energy": "XLE",
-    "Healthcare": "XLV",
-    "Consumer": "XLY",
-    "Industrial": "XLI",
+    "Technology": "XLK", "Financials": "XLF", "Energy": "XLE",
+    "Healthcare": "XLV", "Consumer Discretionary": "XLY", "Industrials": "XLI",
+    "Consumer Staples": "XLP", "Materials": "XLB", "Utilities": "XLU",
+    "Real Estate": "XLRE", "Communication Services": "XLC",
+    "Finance": "XLF", "Consumer": "XLY", "Industrial": "XLI",
 }
 
 SECTOR_ETFS_EU = {
-    "Technology": "EXV8.DE",
+    "Technology": "EXV8.DE", "Financials": "EXV1.DE",
+    "Energy": "EXH1.DE", "Healthcare": "EXV4.DE",
     "Finance": "EXV1.DE",
-    "Energy": "EXH1.DE",
-    "Healthcare": "EXV4.DE",
 }
 
 
@@ -110,9 +108,9 @@ def create_sector_vs_etf_chart(scored_df: pd.DataFrame, region: str = "us") -> g
     fig.update_layout(
         title=dict(text="Sector Fear vs Related ETF", font=dict(size=13)),
         template="plotly_dark",
-        height=220 * len(sector_daily.columns) + 60,
-        legend=dict(orientation="h", y=1.02, font=dict(size=9)),
-        margin=dict(l=50, r=30, t=60, b=30),
+        height=220 * len(sector_daily.columns) + 100,
+        legend=dict(orientation="h", y=1.03, font=dict(size=9)),
+        margin=dict(l=50, r=30, t=70, b=60),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(family="Inter", size=10),
