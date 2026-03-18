@@ -1,0 +1,150 @@
+{
+  "cached_at": "2026-03-18T02:55:19.685923",
+  "count": 16,
+  "articles": [
+    {
+      "daily_fear": 1.8,
+      "direction": "bullish",
+      "confidence": 0.66,
+      "key_driver": "The dominant energy-sector signal today is geopolitical supply-risk sentiment tied to Iran, which supports crude prices and boosts energy equities rather than indicating demand destruction.",
+      "reasoning": "Today's energy news flow is notably bullish, centered on the view that an Iran-related escalation would lift energy stocks via higher oil prices and tighter perceived supply. There is no evidence in the provided articles of recessionary energy demand destruction, capex cuts, dividend stress, or commodity-price collapse; instead, the setup points to supportive upstream fundamentals and constructive sentiment for the sector tomorrow.",
+      "date": "2026-02-28",
+      "article_count": 2
+    },
+    {
+      "daily_fear": 2.4,
+      "direction": "bullish",
+      "confidence": 0.76,
+      "key_driver": "The U.S.-Iran attack escalation and broader Middle East crisis are the dominant energy-sector driver because they raise near-term oil supply disruption and shipping risk more than they signal immediate demand destruction.",
+      "reasoning": "Sector-specific recession risk for energy remains low because today's news is dominated by geopolitical supply threat, which is typically supportive for crude prices and upstream cash flows rather than indicative of collapsing end demand. The rebound in euro zone manufacturing PMI to 50.8 also argues against immediate industrial energy demand weakness, though war-related macro uncertainty prevents an even lower score. With no evidence here of capex cuts, dividend stress, or commodity-price demand collapse, the balance is modestly supportive for energy equities tomorrow.",
+      "date": "2026-03-02",
+      "article_count": 3
+    },
+    {
+      "daily_fear": 2.9,
+      "direction": "bullish",
+      "confidence": 0.82,
+      "key_driver": "The Iran war headlines pushed natural gas prices up roughly 30% to a three-year high, signaling acute supply-risk and tighter energy markets rather than demand destruction.",
+      "reasoning": "Today's energy news is dominated by geopolitical supply disruption, with war-driven spikes in gas prices and broader energy risk premia, which is typically supportive for upstream producers and parts of the energy infrastructure complex. While equity markets sold off sharply, the sector-specific recession signal remains low because the move in commodities appears driven by supply fears, not collapsing industrial demand or company-level stress such as capex cuts, dividend pressure, or production shutdowns. The main near-term risk is that sustained conflict could eventually hurt demand, but today's balance of evidence points to tighter fundamentals rather than energy-sector recession.",
+      "date": "2026-03-03",
+      "article_count": 5
+    },
+    {
+      "daily_fear": 3.8,
+      "direction": "bullish",
+      "confidence": 0.67,
+      "key_driver": "Escalating West Asia/Iran tensions are the dominant energy-sector driver today because they raise near-term supply disruption risk and fuel-crisis concerns rather than signaling clear demand destruction.",
+      "reasoning": "Today's energy news is driven mainly by geopolitical supply-risk headlines in West Asia, including concerns about fuel availability and broader market disruption, which tends to support crude and refined-product prices for producers even as it pressures consumers and energy-intensive industries. There is little evidence in the provided articles of classic energy-sector recession signals such as collapsing oil or gas prices, broad capex cuts, dividend stress, or widespread production shutdowns. The recent equity selloff raises macro sensitivity, but for the energy sector specifically the balance of today's news points to tighter supply risk and price support, implying only mild-to-moderate recession fear rather than severe sector distress.",
+      "date": "2026-03-04",
+      "article_count": 4
+    },
+    {
+      "daily_fear": 2.8,
+      "direction": "bullish",
+      "confidence": 0.64,
+      "key_driver": "Oil prices stabilizing after a spike is the key signal, because it suggests supply-shock fears are easing without clear evidence of energy demand collapsing.",
+      "reasoning": "Today's energy news points to normalization rather than sector stress: oil stopped spiking, which reduces immediate volatility and lowers the risk of a disruptive supply shock. There is no evidence here of crude or gas collapsing on demand destruction, no reported capex cuts or dividend stress from energy companies, and no sign of severe weakness in sector fundamentals. Given broader market turbulence, some caution is warranted, but sector-specific recession risk remains low.",
+      "date": "2026-03-05",
+      "article_count": 1
+    },
+    {
+      "daily_fear": 2.4,
+      "direction": "bullish",
+      "confidence": 0.72,
+      "key_driver": "The dominant energy-sector driver today is Middle East geopolitical escalation pushing oil prices higher on supply disruption risk rather than signaling demand destruction.",
+      "reasoning": "Today's energy news is centered on Mideast turmoil and its inflation implications, which is supportive for upstream energy because rising crude prices reflect threatened supply, not weakening end-demand. That keeps sector recession risk low: higher oil generally supports cash flows, capex capacity, and balance sheets for producers, although it can pressure downstream users and raise macro uncertainty. With no evidence here of capex cuts, dividend stress, or commodity-price collapse, the sector setup remains relatively healthy despite broader market weakness.",
+      "date": "2026-03-06",
+      "article_count": 3
+    },
+    {
+      "daily_fear": 2.8,
+      "direction": "bullish",
+      "confidence": 0.52,
+      "key_driver": "The main energy-specific signal today is market focus on how upcoming CPI data could influence oil prices rather than evidence of actual demand destruction or sector stress.",
+      "reasoning": "Today's news flow is thin and does not show clear signs of energy-sector recessionary stress such as collapsing crude or gas prices, OPEC+ breakdown, capex cuts, or dividend pressure. The article frames oil as a macro watchpoint, which suggests sentiment sensitivity but not deteriorating energy fundamentals yet. Given the prior low fear reading and lack of concrete negative supply-demand evidence, energy recession risk remains low but slightly elevated on macro volatility.",
+      "date": "2026-03-08",
+      "article_count": 1
+    },
+    {
+      "daily_fear": 2.4,
+      "direction": "bullish",
+      "confidence": 0.7,
+      "key_driver": "The key energy-sector event today was the extreme crude oil whipsaw tied to Iran conflict de-escalation headlines, with prices spiking toward $120 before reversing below $90.",
+      "reasoning": "For energy recession risk, this looks more like geopolitical supply-risk volatility than demand destruction: oil did not collapse on weak consumption data, and the market reaction was driven by war-risk repricing and possible easing of Middle East disruption fears. That keeps sector recession fear low, though not minimal, because violent price swings can pressure refiners, consumers, and near-term planning even if upstream fundamentals remain supported. With no evidence here of capex cuts, dividend stress, or broad demand deterioration, the sector setup for tomorrow leans bullish on still-elevated commodity sensitivity and reduced worst-case supply fear.",
+      "date": "2026-03-09",
+      "article_count": 4
+    },
+    {
+      "daily_fear": 3.1,
+      "direction": "bullish",
+      "confidence": 0.58,
+      "key_driver": "Oil price volatility remained the main energy-sector signal today, but the news points to swings rather than a demand-led commodity breakdown.",
+      "reasoning": "Energy recession risk appears mildly elevated, not severe: the article set emphasizes oil price swings and rising recession fears, yet there is no evidence here of a sharp crude or natural gas collapse, OPEC+ dislocation, capex cuts, or dividend stress among producers. That suggests uncertainty and macro caution rather than sector-specific demand destruction. With prior sentiment already low and no clearly negative fundamental catalyst in today's energy news, the sector outlook for tomorrow leans slightly bullish, though conviction is moderate because price volatility remains the dominant near-term risk.",
+      "date": "2026-03-10",
+      "article_count": 3
+    },
+    {
+      "daily_fear": 2.8,
+      "direction": "bullish",
+      "confidence": 0.72,
+      "key_driver": "The key driver was crude oil stabilizing and recovering after prior losses, signaling that supply-risk concerns are outweighing immediate demand-destruction fears.",
+      "reasoning": "Energy-sector recession risk looks low today because oil-related equities traded higher alongside a rebound in crude, which is inconsistent with a sector facing clear demand collapse. The bearish Shell/Qatari LNG force majeure headline points to supply disruption and energy security stress rather than weak end-demand, while potential Venezuela production deals add medium-term supply flexibility. Overall, the news flow suggests a tight and geopolitically sensitive supply backdrop with supportive pricing, not the kind of commodity weakness or capex retrenchment associated with material energy-sector recession stress.",
+      "date": "2026-03-11",
+      "article_count": 6
+    },
+    {
+      "daily_fear": 3.4,
+      "direction": "bullish",
+      "confidence": 0.65,
+      "key_driver": "Escalating Iran conflict is the dominant energy catalyst, raising geopolitical supply-risk and supporting crude prices rather than signaling demand destruction.",
+      "reasoning": "Today's energy news is dominated by Middle East geopolitical tension, which is typically supportive for oil and gas prices through supply-risk premia, not recessionary for the sector. Company-specific signals are also relatively constructive, with Shell receiving a positive target revision and BP seeing no major deterioration in outlook, suggesting integrated energy fundamentals remain intact. While broader market weakness and 'energy crisis' framing add some caution, there is little evidence here of sharp commodity-price declines, capex cuts, or demand destruction severe enough to imply material sector stress.",
+      "date": "2026-03-12",
+      "article_count": 8
+    },
+    {
+      "daily_fear": 3.8,
+      "direction": "bullish",
+      "confidence": 0.79,
+      "key_driver": "Escalation of the Iran conflict is the dominant energy-sector driver because it raises supply disruption risk and supports oil and refined-product prices despite broader macro fear.",
+      "reasoning": "Today's energy news points more to a supply shock than to recessionary demand destruction: multiple reports highlight war-related disruptions, persistent high gasoline prices, and potential SPR use that would leave U.S. inventories historically low, all of which are supportive for upstream cash flows. While Gulf states losing revenue and broader crisis/stagflation headlines signal stress, there is no clear evidence here of collapsing oil or gas demand, widespread capex cuts, or dividend pressure at energy companies. On balance, energy-sector recession risk is only mildly elevated, but near-term price support from geopolitical supply risk keeps tomorrow's sector tone biased bullish.",
+      "date": "2026-03-13",
+      "article_count": 12
+    },
+    {
+      "daily_fear": 2.7,
+      "direction": "bullish",
+      "confidence": 0.82,
+      "key_driver": "Escalating Iran/Hormuz disruption risk is pushing oil and refined-product prices higher, tightening near-term supply expectations rather than signaling energy demand destruction.",
+      "reasoning": "Today's energy news points to a supply-shock environment: Gulf disruption risk, rising jet fuel prices, and commentary on soaring oil all support stronger upstream cash flows and near-term earnings for oil producers. That raises inflation risk for consumers, but for the energy sector itself it is not recessionary in the usual sense because commodity prices are rising on threatened supply, not collapsing on weak demand. The completed Vineyard Wind project also adds a modest positive signal for energy infrastructure and renewables investment.",
+      "date": "2026-03-14",
+      "article_count": 9
+    },
+    {
+      "daily_fear": 3.4,
+      "direction": "bullish",
+      "confidence": 0.77,
+      "key_driver": "Escalating Strait of Hormuz and Iran-related supply risk is the dominant energy-sector driver today, pushing oil and fuel price concerns higher.",
+      "reasoning": "Today's energy news points more to supply-side tightness than recessionary demand destruction: warnings of a worsening fuel crunch, rising gasoline prices, and geopolitical risk around Hormuz all support firmer crude and refined-product pricing. That is a stressor for consumers and the broader market, but for the energy sector itself it typically supports upstream cash flows and near-term earnings rather than signaling sector recession. Fear is therefore only mild-to-moderate, with a bullish next-day bias for energy equities if oil risk premium remains elevated.",
+      "date": "2026-03-15",
+      "article_count": 7
+    },
+    {
+      "daily_fear": 3.9,
+      "direction": "bullish",
+      "confidence": 0.8,
+      "key_driver": "The dominant energy-sector driver today is the Iran-linked disruption around the Strait of Hormuz and UAE energy infrastructure, which is pushing oil and gas prices sharply higher on supply risk rather than signaling demand collapse.",
+      "reasoning": "Energy-sector recession risk remains only mildly elevated because today's news points to a supply shock, not sectoral demand destruction: oil is hovering near $100, diesel prices have surged, and Hormuz disruption is tightening physical markets. That supports upstream cash flows and near-term earnings for producers, even as it raises downstream and demand-risk concerns if high prices persist long enough to erode consumption. With China data better than expected and no signs here of broad capex cuts, dividend stress, or shale retrenchment, fundamentals for the sector are still more supportive than recessionary.",
+      "date": "2026-03-16",
+      "article_count": 21
+    },
+    {
+      "daily_fear": 2.8,
+      "direction": "bullish",
+      "confidence": 0.63,
+      "key_driver": "Escalating Iran-related geopolitical tensions are the main energy-sector driver today because they raise perceived oil supply disruption risk rather than signaling demand destruction.",
+      "reasoning": "Today's energy news is dominated by Middle East security escalation involving Iran, which is typically supportive for crude prices through higher geopolitical risk premia and potential shipping or regional supply concerns. There is no evidence in the provided articles of weakening end-demand, OPEC+ oversupply, shale capex cuts, or energy-company financial stress, so recession risk for the sector remains low. The slightly elevated fear score reflects uncertainty and volatility, but the near-term readthrough for energy equities and commodities is more supportive than recessionary.",
+      "date": "2026-03-17",
+      "article_count": 3
+    }
+  ]
+}

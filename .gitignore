@@ -27,6 +27,9 @@ _bmad-output/
 # Claude Code
 .claude/
 
+# Git
+.gitignore
+
 # OS
 .DS_Store
 Thumbs.db

@@ -1,0 +1,204 @@
+{
+  "cached_at": "2026-03-18T02:53:58.284323",
+  "count": 22,
+  "articles": [
+    {
+      "daily_fear": 3.0,
+      "direction": "bearish",
+      "confidence": 0.62,
+      "key_driver": "The main Financials-relevant development is the broad market sell-off tied to Trump's tariff hike, which raises risk of tighter financial conditions and weaker credit sentiment but does not yet show direct banking-system stress.",
+      "reasoning": "Today's Financials news is light on core banking stress signals: there are no reports of bank earnings misses, rising loan-loss provisions, funding-market strain, CDS stress, or regulatory shocks. Most sector mentions are Goldman- or crypto-related and not indicative of credit deterioration. Still, the tariff-driven 800-point Dow decline could pressure risk assets, deal activity, and lending sentiment if sustained, so recession fear for Financials is modestly elevated but far from systemic.",
+      "date": "2026-02-22",
+      "article_count": 7
+    },
+    {
+      "daily_fear": 2.0,
+      "direction": "bullish",
+      "confidence": 0.68,
+      "key_driver": "The only Financials-related news item points to exceptionally strong retail trading activity in 2025, which supports capital markets revenue rather than signaling banking or credit stress.",
+      "reasoning": "There is no evidence in today's input of worsening bank credit quality, rising loan loss provisions, interbank stress, funding pressure, or regulatory alarm. With the S&P 500 trending higher over the past five sessions and the news flow centered on elevated retail market participation, the read-through for financials is mildly positive, especially for brokers, exchanges, and asset-gathering businesses, leaving sector recession risk low.",
+      "date": "2026-02-23",
+      "article_count": 1
+    },
+    {
+      "daily_fear": 3.0,
+      "direction": "bearish",
+      "confidence": 0.67,
+      "key_driver": "Jamie Dimon’s warning about pre-crisis parallels and rivals doing “dumb things” is the clearest signal today that risk discipline may be weakening across parts of finance.",
+      "reasoning": "Today’s news points to mild but not systemic financial-sector stress: big-bank sentiment is softer, Bank of America traded lower on economic uncertainty, and Dimon’s comments raise concern about competitive excesses and underwriting discipline. Offsetting that, there is no evidence here of acute funding stress, widening interbank strain, regulatory capital problems, or sharply deteriorating credit quality, while M&A and fintech headlines suggest broader financial activity is still functioning. Overall, this supports a minor-stress reading rather than a severe credit or banking-stability warning.",
+      "date": "2026-02-24",
+      "article_count": 8
+    },
+    {
+      "daily_fear": 2.0,
+      "direction": "bullish",
+      "confidence": 0.7,
+      "key_driver": "There was no material negative banking, credit, or financial-stability news in today's Financials coverage, leaving prior low stress intact.",
+      "reasoning": "Today's articles are largely market-feature and dividend-oriented pieces rather than reports of worsening bank fundamentals, funding stress, credit losses, or regulatory shock. With no evidence here of rising loan-loss provisions, interbank strain, CRE deterioration, or spread blowouts, Financials recession risk remains low and slightly constructive versus the prior 3.0 sentiment reading.",
+      "date": "2026-02-25",
+      "article_count": 4
+    },
+    {
+      "daily_fear": 1.0,
+      "direction": "bullish",
+      "confidence": 0.58,
+      "key_driver": "The only Financials-linked news is broadly bullish market commentary, with no signs today of banking stress, credit deterioration, or funding-market instability.",
+      "reasoning": "There is no evidence in today's input of worsening bank asset quality, higher loan loss provisions, interbank stress, regulatory pressure, or commercial real estate contagion. With recent equity markets stable to positive and prior sentiment already low, the financial sector appears healthy, supporting a very low recession-fear reading for banks and credit-sensitive financials.",
+      "date": "2026-02-26",
+      "article_count": 1
+    },
+    {
+      "daily_fear": 1.0,
+      "direction": "bullish",
+      "confidence": 0.72,
+      "key_driver": "The only Financials-linked item points to slower but still stable growth in Ukraine, which does not indicate meaningful stress in banking, credit, or financial stability conditions.",
+      "reasoning": "There is no evidence in today's news of bank earnings pressure, rising loan-loss provisions, interbank funding stress, widening credit spreads, or regulatory shocks affecting the financial sector. With prior sentiment already very low and the available article describing stability rather than deterioration, financial-sector recession risk remains minimal and the near-term tone is slightly supportive.",
+      "date": "2026-02-27",
+      "article_count": 1
+    },
+    {
+      "daily_fear": 2.0,
+      "direction": "bearish",
+      "confidence": 0.64,
+      "key_driver": "The main financials-specific driver is geopolitical risk tied to the reported U.S.-Israeli attack on Iran, which can pressure bank stocks via risk-off sentiment but does not yet indicate underlying banking or credit-market deterioration.",
+      "reasoning": "Today's articles provide little direct evidence of worsening financial-sector fundamentals such as rising loan losses, tighter interbank funding, regulatory stress, or broad credit deterioration. The negative signal is mostly macro/geopolitical and likely affects financials through market sentiment rather than banking system health, while the Berkshire-related item is mildly supportive. Given the lack of concrete signs of stress in credit quality, liquidity, or capital, recession fear for financials remains low, though near-term trading bias is modestly bearish.",
+      "date": "2026-02-28",
+      "article_count": 4
+    },
+    {
+      "daily_fear": 2.0,
+      "direction": "bullish",
+      "confidence": 0.72,
+      "key_driver": "There was no meaningful bank-specific stress signal in today's Financials news, leaving the sector supported by an absence of credit or liquidity deterioration headlines.",
+      "reasoning": "Today's articles are largely portfolio commentary and macro watchlist items rather than evidence of worsening banking system health, tighter interbank funding, or rising credit losses. With no reports of bank earnings disappointments, provisioning spikes, regulatory shocks, or CRE/consumer credit deterioration, Financials recession fear remains low and close to the prior 2.0 reading. Slight market softness tempers conviction, but sector-specific stability still points to a mildly bullish near-term outlook.",
+      "date": "2026-03-01",
+      "article_count": 3
+    },
+    {
+      "daily_fear": 2.5,
+      "direction": "bearish",
+      "confidence": 0.46,
+      "key_driver": "The main financials-sector driver today is rising geopolitical uncertainty around a possible Iran war, which increases market risk aversion but does not yet indicate direct banking-system or credit-market stress.",
+      "reasoning": "Today’s article points to macro and market volatility rather than sector-specific deterioration in bank fundamentals, credit quality, interbank funding, or regulatory capital. There is no evidence here of widening financial stress such as higher loan-loss provisions, liquidity strain, CRE shock, or consumer credit worsening, so recession risk for financials remains low but slightly above yesterday due to the possibility that geopolitical shocks could tighten financial conditions if they persist.",
+      "date": "2026-03-02",
+      "article_count": 1
+    },
+    {
+      "daily_fear": 2.0,
+      "direction": "bullish",
+      "confidence": 0.63,
+      "key_driver": "The only Financials-relevant item is a broad, neutral article on war-related market impacts, which does not indicate worsening bank credit, funding, or capital stress.",
+      "reasoning": "There is no sector-specific evidence today of banking system deterioration, such as earnings misses, rising loan-loss provisions, interbank stress, widening credit spreads, or adverse regulatory developments. With prior sentiment already low and recent equity market moves relatively stable, the signal for Financials remains mild caution rather than recessionary stress, keeping fear near the healthy end of the scale.",
+      "date": "2026-03-03",
+      "article_count": 1
+    },
+    {
+      "daily_fear": 2.0,
+      "direction": "bullish",
+      "confidence": 0.41,
+      "key_driver": "The only financials-relevant item is a broader market commentary on Iran-related tensions, which implies headline-driven volatility rather than evidence of worsening bank credit quality or financial-system stress.",
+      "reasoning": "There is no sector-specific evidence today of rising loan losses, funding stress, widening interbank risk, regulatory pressure, or deterioration in bank balance sheets. With the prior sentiment already low and today's news centered on geopolitical market turbulence rather than banking fundamentals, recession risk for financials remains low, though near-term trading could stay choppy.",
+      "date": "2026-03-04",
+      "article_count": 1
+    },
+    {
+      "daily_fear": 2.0,
+      "direction": "bullish",
+      "confidence": 0.62,
+      "key_driver": "The main financials-related signal today is a broad market rebound alongside stabilizing oil prices, which reduces near-term stress sentiment without indicating any new banking or credit deterioration.",
+      "reasoning": "There is no article evidence today of worsening bank earnings, rising loan loss provisions, interbank funding stress, widening financial credit spreads, or adverse regulatory developments. The Treasury-focused piece is macro-neutral rather than a clear warning on bank margins or financial stability, so with prior sentiment already low, recession risk for the financial sector remains low and financials lean modestly bullish tomorrow.",
+      "date": "2026-03-05",
+      "article_count": 2
+    },
+    {
+      "daily_fear": 1.0,
+      "direction": "bullish",
+      "confidence": 0.77,
+      "key_driver": "There was no meaningful negative banking, credit, or financial-stability news in today's Financials coverage, leaving sector recession risk very low.",
+      "reasoning": "Today's articles are largely neutral-to-bullish and do not point to any deterioration in bank earnings, loan quality, funding markets, capital strength, or regulatory stress. With no signs of widening credit stress, interbank strain, or worsening consumer/CRE exposure in the news flow, the financial sector appears fundamentally stable. Equity market weakness in the broader S&P 500 is a mild caution, but it is not enough on its own to imply sector-specific recession risk for Financials.",
+      "date": "2026-03-07",
+      "article_count": 5
+    },
+    {
+      "daily_fear": 2.0,
+      "direction": "bullish",
+      "confidence": 0.58,
+      "key_driver": "The only Financials-relevant item is a broadly neutral Vanguard U.S. outlook, which does not indicate worsening bank credit quality, funding stress, or regulatory pressure.",
+      "reasoning": "There is no article evidence today of bank earnings stress, rising loan-loss provisions, interbank funding strain, widening credit spreads, or acute commercial real estate deterioration. While the recent S&P 500 pullback suggests some market risk-off tone, that alone is not enough to signal meaningful financial-sector recession stress, so conditions still look broadly healthy with only mild caution.",
+      "date": "2026-03-09",
+      "article_count": 1
+    },
+    {
+      "daily_fear": 1.0,
+      "direction": "bullish",
+      "confidence": 0.73,
+      "key_driver": "The strongest sector signal today is capital confidence from Sallie Mae's $200 million accelerated share buyback, which suggests management does not see near-term balance-sheet or credit stress.",
+      "reasoning": "Today's Financials news flow shows no evidence of banking-system strain, credit deterioration, widening funding stress, or adverse regulatory shocks. Instead, headlines are mostly benign-to-positive, with shareholder-return activity and growth-oriented commentary outweighing a modest political wrinkle around a Fed nomination. Given the absence of stress signals in bank credit, interbank markets, or provisions, financial-sector recession risk remains very low.",
+      "date": "2026-03-10",
+      "article_count": 7
+    },
+    {
+      "daily_fear": 3.0,
+      "direction": "bearish",
+      "confidence": 0.71,
+      "key_driver": "JPMorgan's markdown of software loans due to emerging private-credit risks is the clearest sign of credit quality pressure within financials today.",
+      "reasoning": "Today's financials news points to mild but not systemic stress: the most important signal is JPMorgan marking down software loans, which suggests some deterioration in private-credit valuations and underwriting conditions. Weak Treasury auctions and higher yields can pressure bank balance sheets and funding conditions at the margin, but there is no evidence here of interbank stress, major earnings misses, regulatory shock, or broad-based credit seizure. Overall, this supports a low-to-moderate fear reading with a slightly bearish near-term outlook for the sector.",
+      "date": "2026-03-11",
+      "article_count": 7
+    },
+    {
+      "daily_fear": 4.0,
+      "direction": "bearish",
+      "confidence": 0.58,
+      "key_driver": "The main financials signal today is the rise in recession odds to 32% from 21%, which points to higher expected credit stress for banks and tighter risk appetite across financial markets.",
+      "reasoning": "Today's news is light on direct banking-system indicators such as bank earnings, loan-loss provisions, interbank stress, or regulatory actions, so there is not enough evidence for a high-conviction systemic-risk call. Still, the recession-odds article and broader geopolitical uncertainty are modestly negative for financials because they imply potential future deterioration in credit quality, weaker deal activity, and more cautious lending conditions. As a result, fear is above the prior 3.0 reading but remains in the minor-stress range rather than signaling acute financial instability.",
+      "date": "2026-03-12",
+      "article_count": 3
+    },
+    {
+      "daily_fear": 5.8,
+      "direction": "bearish",
+      "confidence": 0.73,
+      "key_driver": "Mortgage rates jumping to seven-month highs is the clearest direct pressure point for financials because it threatens mortgage origination volumes, refinancing activity, and housing-linked credit quality.",
+      "reasoning": "Today's financials news points to moderate but not yet systemic stress: higher mortgage rates, weak GDP growth, and macro risk-off headlines all imply tighter credit conditions and weaker loan demand. However, there are no reports of bank failures, funding-market strain, major earnings misses, CDS blowouts, or explicit credit-loss shocks, which keeps recession fear below severe-distress territory. The balance of evidence suggests margin and credit pressures are building for banks and lenders, so near-term sector sentiment is bearish.",
+      "date": "2026-03-13",
+      "article_count": 9
+    },
+    {
+      "daily_fear": 7.2,
+      "direction": "bearish",
+      "confidence": 0.79,
+      "key_driver": "The standout sector-specific risk is the reported \"$265 billion private credit meltdown,\" which points to potential credit deterioration and spillover risk for banks, asset managers, and broader funding markets.",
+      "reasoning": "Today's Financials news flow skews clearly negative because the most relevant article signals stress in private credit, a key channel for leveraged finance and nonbank balance-sheet risk that can feed back into banks through underwriting, warehouse lines, and investor confidence. Additional macro-fear headlines around deficits, war, and Dalio's cycle warning reinforce a risk-off backdrop, while the bullish Berkshire/Moody's items are firm-specific and do little to offset broader concerns about credit conditions and financial stability. With the S&P 500 already weakening over the last two sessions and prior sentiment near neutral-negative, financial sector recession risk looks materially elevated rather than merely mixed.",
+      "date": "2026-03-14",
+      "article_count": 8
+    },
+    {
+      "daily_fear": 6.4,
+      "direction": "bearish",
+      "confidence": 0.68,
+      "key_driver": "The most important driver today is the risk-off tone around large market swings and macro uncertainty, which can tighten financial conditions and pressure bank sentiment even without clear evidence of acute banking stress.",
+      "reasoning": "Today's Financials news flow is more sentiment-driven than fundamentally damaging, with no direct reports of bank failures, major earnings misses, regulatory shocks, or clear credit market seizure. However, the prior elevated fear reading, recent S&P 500 weakness, and bearish macro-linked headlines suggest continued pressure on financials through tighter risk appetite, weaker deal activity, and concern around credit-sensitive exposures such as real estate. Overall, this points to material but not systemic stress in the sector.",
+      "date": "2026-03-15",
+      "article_count": 5
+    },
+    {
+      "daily_fear": 6.9,
+      "direction": "bearish",
+      "confidence": 0.74,
+      "key_driver": "Warnings that private capital problems are being underestimated, combined with a crypto lender bankruptcy and renewed inflation/oil shocks that could delay Fed cuts, point to tighter credit and rising financial stability risk.",
+      "reasoning": "Today's Financials news skews toward material but not yet systemic stress: private credit concerns, a Chapter 11 filing by crypto lender BlockFills, and a shelved IPO all suggest weaker risk appetite and potential funding pressure across nonbank financials. Geopolitical oil-driven inflation fears increase the odds of higher-for-longer rates, which can keep yield-curve and margin pressure elevated while worsening credit performance in leveraged borrowers. There is no clear evidence here of major bank failures or acute interbank stress, but the balance of signals supports a distinctly negative read for sector recession risk.",
+      "date": "2026-03-16",
+      "article_count": 17
+    },
+    {
+      "daily_fear": 2.4,
+      "direction": "bullish",
+      "confidence": 0.69,
+      "key_driver": "The key financials-sector driver today is the market's focus on the Fed's upcoming rate decision, which matters for bank net interest margins and credit conditions but does not yet signal acute banking stress.",
+      "reasoning": "Today's news flow shows little direct evidence of financial-sector deterioration: there are no reports of bank earnings misses, rising loss provisions, funding stress, widening credit spreads, or regulatory alarms. The Kalshi legal story is idiosyncratic and not a banking-system stability signal, while commentary defending private markets suggests institutional confidence rather than liquidity strain. With prior sentiment elevated at 6.9 but current article evidence much calmer, financial-sector recession risk looks low and conditions appear more stable than yesterday.",
+      "date": "2026-03-17",
+      "article_count": 3
+    }
+  ]
+}

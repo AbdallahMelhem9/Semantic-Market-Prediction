@@ -7,6 +7,7 @@ from src.analysis.scorer import BaseSentimentScorer, SentimentScore
 from src.analysis.prompt_loader import load_prompt
 from src.analysis.response_validator import validate_score_response
 from src.config.settings import Settings
+from src.ingestion.text_cleaner import clean_article
 
 logger = logging.getLogger(__name__)
 
@@ -46,9 +47,10 @@ class GroqScorer(BaseSentimentScorer):
             return None
 
     def _build_prompt(self, article: dict) -> str:
-        title = article.get("title", "")
-        description = article.get("description", "")
-        content = article.get("content", "")
+        cleaned = clean_article(article)
+        title = cleaned.get("title", "")
+        description = cleaned.get("description", "")
+        content = cleaned.get("content", "")
         article_text = f"Title: {title}\nDescription: {description}\nContent: {content}"
         return self.prompt_template.replace("{{ARTICLE}}", article_text)
 

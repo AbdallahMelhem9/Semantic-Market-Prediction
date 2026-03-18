@@ -4,7 +4,7 @@ from collections import Counter
 from datetime import date, timedelta
 
 import pandas as pd
-from dash import Input, Output, State, html, no_update, callback_context
+from dash import Input, Output, State, dcc, html, no_update, callback_context
 
 from src.visualization.sentiment_chart import create_sentiment_vs_sp500_chart
 from src.visualization.correlation_heatmap import create_correlation_heatmap
@@ -18,11 +18,13 @@ from src.dashboard.components.article_browser import create_article_browser
 logger = logging.getLogger(__name__)
 
 SECTOR_ETFS_US = {
-    "Technology": "XLK", "Finance": "XLF", "Energy": "XLE",
-    "Healthcare": "XLV", "Consumer": "XLY", "Industrial": "XLI",
+    "Technology": "XLK", "Financials": "XLF", "Energy": "XLE",
+    "Healthcare": "XLV", "Consumer Discretionary": "XLY", "Industrials": "XLI",
+    "Consumer Staples": "XLP", "Materials": "XLB", "Utilities": "XLU",
+    "Real Estate": "XLRE", "Communication Services": "XLC",
 }
 SECTOR_ETFS_EU = {
-    "Technology": "EXV8.DE", "Finance": "EXV1.DE",
+    "Technology": "EXV8.DE", "Financials": "EXV1.DE",
     "Energy": "EXH1.DE", "Healthcare": "EXV4.DE",
 }
 
@@ -101,64 +103,6 @@ def register_callbacks(app, pipeline_data: dict):
     def update_dashboard(days_filter, sector_filter, active_region, rescore_trigger):
         merged_df, scored_df, corr_df, prediction, llm_forecast, market_name = _get_region_data(pipeline_data, active_region)
 
-        # If 3 months selected and we don't have enough data, fetch more from Google News
-        if days_filter == 90 and active_region != "all":
-            data = pipeline_data.get(active_region, {})
-            scored_dates = scored_df["date"].nunique() if not scored_df.empty and "date" in scored_df.columns else 0
-            if scored_dates < 20:
-                try:
-                    from src.config.settings import load_settings
-                    from src.ingestion.google_news_client import fetch_google_news
-                    from src.analysis.batch_processor import score_articles_in_batches
-                    from src.timeseries.aggregator import aggregate_daily_sentiment
-                    import yaml
-                    from pathlib import Path
-
-                    settings = load_settings()
-                    config_path = Path(settings.paths.root) / "config.yaml"
-                    with open(config_path) as f:
-                        raw = yaml.safe_load(f)
-                    region_config = raw.get("regions", {}).get(active_region, {})
-                    keywords = region_config.get("keywords", ["recession", "economy"])
-                    prompt_suffix = "us" if active_region == "us" else "eu"
-
-                    gn_df = fetch_google_news(keywords, max_articles=170)
-                    if not gn_df.empty:
-                        # Merge with existing articles
-                        articles_df = data.get("articles_df", pd.DataFrame())
-                        if not articles_df.empty:
-                            articles_df = pd.concat([articles_df, gn_df], ignore_index=True)
-                            articles_df = articles_df.drop_duplicates(subset=["url"], keep="first").reset_index(drop=True)
-                        else:
-                            articles_df = gn_df
-
-                        # Only score NEW articles (skip already scored URLs)
-                        existing_scored = data.get("scored_df", pd.DataFrame())
-                        already_scored_urls = set(existing_scored["url"].tolist()) if not existing_scored.empty and "url" in existing_scored.columns else set()
-                        new_articles = articles_df[~articles_df["url"].isin(already_scored_urls)]
-
-                        if not new_articles.empty:
-                            scorer = create_scorer(settings, region=prompt_suffix)
-                            new_scored = score_articles_in_batches(new_articles, scorer, settings)
-                            scored_df = pd.concat([existing_scored, new_scored], ignore_index=True)
-                            scored_df = scored_df.drop_duplicates(subset=["url"], keep="first").reset_index(drop=True)
-                        else:
-                            scored_df = existing_scored
-
-                        pipeline_data[active_region]["scored_df"] = scored_df
-                        pipeline_data[active_region]["articles_df"] = articles_df
-
-                        # Re-aggregate — sentiment only, no market data for 3-month view
-                        daily = aggregate_daily_sentiment(scored_df, settings.visualization.rolling_windows)
-                        if not daily.empty:
-                            daily["date"] = pd.to_datetime(daily["date"]).dt.date
-                            merged_df = daily
-                            # Don't overwrite main pipeline data — this is a temporary extended view
-
-                        logger.info(f"3-month fetch: {len(new_articles)} new articles scored, {scored_df['date'].nunique()} total days")
-                except Exception as e:
-                    logger.warning(f"3-month extended fetch failed: {e}")
-
         if not merged_df.empty and "date" in merged_df.columns:
             merged_df["date"] = pd.to_datetime(merged_df["date"]).dt.date
         if not scored_df.empty and "date" in scored_df.columns:
@@ -215,8 +159,9 @@ def register_callbacks(app, pipeline_data: dict):
         )
 
         corr_fig = create_correlation_heatmap(corr_df)
-        sector_fig = create_sector_heatmap(scored_df)
-        sector_ts_fig = create_sector_timeseries(scored_df)
+        sector_daily = _get_sector_daily(pipeline_data, active_region)
+        sector_fig = create_sector_heatmap(scored_df, sector_daily=sector_daily)
+        sector_ts_fig = create_sector_timeseries(scored_df, sector_daily=sector_daily)
         sector_etf_fig = create_sector_vs_etf_chart(scored_df, region=active_region if active_region != "all" else "us")
         stock_fig = create_stock_mentions_chart(scored_df)
         pred_card = _build_dual_forecast(prediction, llm_forecast)
@@ -226,10 +171,10 @@ def register_callbacks(app, pipeline_data: dict):
     @app.callback(
         [Output("rescore-status", "children"), Output("store-rescore-trigger", "data")],
         [Input("btn-rescore", "n_clicks")],
-        [State("filter-llm", "value"), State("store-active-region", "data"), State("store-rescore-trigger", "data")],
+        [State("filter-llm", "value"), State("store-active-region", "data"), State("store-rescore-trigger", "data"), State("filter-days", "value")],
         prevent_initial_call=True,
     )
-    def rescore_articles(n_clicks, model_value, active_region, current_trigger):
+    def rescore_articles(n_clicks, model_value, active_region, current_trigger, days_filter):
         if not model_value:
             return "Select a model first", current_trigger or 0
 
@@ -254,6 +199,11 @@ def register_callbacks(app, pipeline_data: dict):
             settings.llm.backend = "openrouter"
             settings.llm.model = model_value
 
+        # Determine time window cutoff from the dashboard filter
+        rescore_cutoff = None
+        if days_filter:
+            rescore_cutoff = date.today() - timedelta(days=days_filter)
+
         regions_to_score = [active_region] if active_region != "all" else list(pipeline_data.keys())
 
         for region_key in regions_to_score:
@@ -262,10 +212,35 @@ def register_callbacks(app, pipeline_data: dict):
             if articles_df.empty:
                 continue
 
+            # Split articles into those inside/outside the time window
+            if rescore_cutoff and "date" in articles_df.columns:
+                articles_df["date"] = pd.to_datetime(articles_df["date"]).dt.date
+                to_rescore = articles_df[articles_df["date"] >= rescore_cutoff].copy()
+                to_keep = articles_df[articles_df["date"] < rescore_cutoff].copy()
+            else:
+                to_rescore = articles_df.copy()
+                to_keep = pd.DataFrame()
+
             prompt_suffix = "us" if region_key == "us" else "eu"
 
+            if to_rescore.empty:
+                logger.info(f"[{region_key}] Rescore: no articles in time window, skipping")
+                continue
+
+            logger.info(f"[{region_key}] Rescore: scoring {len(to_rescore)} articles in window ({rescore_cutoff or 'all'} to {date.today()}), keeping {len(to_keep)} older scores unchanged")
             scorer = create_scorer(settings, region=prompt_suffix)
-            scored_df = score_articles_in_batches(articles_df, scorer, settings)
+            newly_scored = score_articles_in_batches(to_rescore, scorer, settings)
+
+            # Merge newly scored articles with old scores outside the window
+            old_scored = data.get("scored_df", pd.DataFrame())
+            if not to_keep.empty and not old_scored.empty and "url" in old_scored.columns:
+                old_scored["date"] = pd.to_datetime(old_scored["date"]).dt.date
+                kept_scores = old_scored[old_scored["date"] < rescore_cutoff].copy()
+                scored_df = pd.concat([kept_scores, newly_scored], ignore_index=True)
+            else:
+                scored_df = newly_scored
+
+            scored_df = scored_df.sort_values("date").reset_index(drop=True)
             pipeline_data[region_key]["scored_df"] = scored_df
 
             # Get ORIGINAL market data (saved once, never modified)
@@ -279,11 +254,31 @@ def register_callbacks(app, pipeline_data: dict):
 
             market_df = data.get("_original_market_df", pd.DataFrame()).copy()
 
+            # Only run daily assessment on the rescored window
             daily_assessments = []
+            if rescore_cutoff:
+                window_scored = scored_df[scored_df["date"] >= rescore_cutoff].copy()
+                n_window_days = window_scored["date"].nunique()
+                logger.info(f"[{region_key}] Rescore: running daily assessment on {n_window_days} days ({rescore_cutoff} to {date.today()}), skipping {scored_df['date'].nunique() - n_window_days} older days")
+            else:
+                window_scored = scored_df.copy()
+                logger.info(f"[{region_key}] Rescore: no time filter, assessing all {scored_df['date'].nunique()} days")
+
             try:
-                daily_assessments = assess_daily_sentiment(settings, scored_df, market_df)
+                new_assessments = assess_daily_sentiment(settings, window_scored, market_df)
             except Exception:
-                pass
+                new_assessments = []
+
+            # Merge new assessments with old ones outside the window
+            old_merged_df = data.get("merged_df", pd.DataFrame())
+            if rescore_cutoff and not old_merged_df.empty and "daily_fear" in old_merged_df.columns:
+                old_merged_df["date"] = pd.to_datetime(old_merged_df["date"]).dt.date
+                old_assessments = old_merged_df[old_merged_df["date"] < rescore_cutoff][["date", "daily_fear", "key_driver", "reasoning"]].dropna(subset=["daily_fear"])
+                old_assessment_list = old_assessments.to_dict(orient="records")
+                daily_assessments = old_assessment_list + new_assessments
+                logger.info(f"[{region_key}] Rescore: kept {len(old_assessment_list)} old daily assessments + {len(new_assessments)} new = {len(daily_assessments)} total")
+            else:
+                daily_assessments = new_assessments
 
             daily = aggregate_daily_sentiment(scored_df, settings.visualization.rolling_windows)
             if not daily.empty and daily_assessments:
@@ -302,7 +297,10 @@ def register_callbacks(app, pipeline_data: dict):
                 daily["date"] = pd.to_datetime(daily["date"]).dt.date
                 market_df["date"] = pd.to_datetime(market_df["date"]).dt.date
                 # Inner join: only keep dates where BOTH sentiment and market exist
-                merged = pd.merge(market_df, daily, on="date", how="inner")
+                merged = pd.merge(daily, market_df, on="date", how="left")
+                for col in ["sp500_close", "sp500_return", "sp500_direction"]:
+                    if col in merged.columns:
+                        merged[col] = merged[col].ffill()
                 pipeline_data[region_key]["merged_df"] = merged
             elif not daily.empty:
                 pipeline_data[region_key]["merged_df"] = daily
@@ -319,8 +317,9 @@ def register_callbacks(app, pipeline_data: dict):
                 pass
 
         model_name = model_value.split("/")[-1] if "/" in model_value else model_value
+        window_label = f"last {days_filter}d" if days_filter else "all 30d"
         new_trigger = (current_trigger or 0) + 1
-        return html.Div(f"Re-scored with {model_name}", style={"color": "#22c55e", "fontSize": "0.8rem"}), new_trigger
+        return html.Div(f"Re-scored {window_label} with {model_name}", style={"color": "#22c55e", "fontSize": "0.8rem"}), new_trigger
 
     from src.analysis.scorer_factory import create_scorer
 
@@ -340,67 +339,114 @@ def register_callbacks(app, pipeline_data: dict):
     chat_engine = None
 
     @app.callback(
-        [Output("chat-messages", "children"), Output("chat-input", "value"), Output("chat-loading", "children"), Output("store-chat-history", "data")],
+        [Output("chat-messages", "children", allow_duplicate=True),
+         Output("chat-input", "value"),
+         Output("store-chat-history", "data"),
+         Output("store-chat-streaming", "data"),
+         Output("chat-stream-interval", "disabled")],
         [Input("btn-chat", "n_clicks")],
-        [State("chat-input", "value"), State("store-chat-history", "data"), State("store-active-region", "data")],
+        [State("chat-input", "value"), State("store-chat-history", "data"),
+         State("store-active-region", "data"), State("filter-sector", "value"),
+         State("filter-days", "value")],
         prevent_initial_call=True,
     )
-    def handle_chat(n_clicks, user_input, chat_history, active_region):
+    def handle_chat(n_clicks, user_input, chat_history, active_region, sector_filter, days_filter):
         nonlocal chat_engine
 
         if not user_input or not user_input.strip():
-            return no_update, no_update, no_update, no_update
+            return no_update, no_update, no_update, no_update, no_update
 
         if chat_history is None:
             chat_history = []
 
         chat_history.append({"role": "user", "text": user_input})
 
-        region_data = pipeline_data.get(active_region, {}) if active_region != "all" else _merge_all_regions(pipeline_data)
+        # Build frontend context for the chat engine
+        region_label = {"us": "United States", "europe": "Europe", "all": "All regions"}.get(active_region, active_region)
+        days_label = {3: "last 3 days", 7: "last week", 14: "last 2 weeks", 30: "last month"}.get(days_filter, f"last {days_filter} days")
+        frontend_context = {
+            "region": region_label,
+            "region_key": active_region,
+            "sector": sector_filter or "All sectors",
+            "time_window": days_label,
+        }
 
         if chat_engine is None:
             try:
                 from src.chatbot.chat_engine import ChatEngine
                 from src.config.settings import load_settings
-                chat_engine = ChatEngine(load_settings(), region_data)
+                chat_engine = ChatEngine(load_settings(), pipeline_data)
             except Exception:
                 chat_engine = None
 
         if chat_engine:
-            chat_engine.pipeline_data = region_data
-            response = chat_engine.ask(user_input)
+            chat_engine.all_pipeline_data = pipeline_data
+            chat_engine.frontend_context = frontend_context
+            chat_engine.ask_streaming(user_input, chat_history)
         else:
-            response = "Chat engine not available."
+            chat_history.append({"role": "assistant", "text": "Chat engine not available."})
+            return _render_messages(chat_history), "", chat_history, False, True
 
-        chat_history.append({"role": "assistant", "text": response})
+        # Show user message immediately, start polling for response
+        messages_ui = _render_messages(chat_history + [{"role": "assistant", "text": "..."}])
+        return messages_ui, "", chat_history, True, False
 
-        messages_ui = []
-        for msg in chat_history:
-            if msg["role"] == "user":
-                messages_ui.append(html.Div(msg["text"], style={
-                    "padding": "8px 14px", "margin": "6px 0", "borderRadius": "8px",
-                    "maxWidth": "75%", "marginLeft": "auto",
-                    "background": "#253045", "color": "#d4dce8", "fontSize": "0.85rem",
-                }))
-            else:
-                # Format assistant response with line breaks
-                lines = msg["text"].split("\n")
-                formatted = []
-                for line in lines:
-                    if line.strip().startswith("- ") or line.strip().startswith("• "):
-                        formatted.append(html.Div(line, style={"paddingLeft": "12px", "fontSize": "0.8rem"}))
-                    elif line.strip().startswith("References") or line.strip().startswith("**"):
-                        formatted.append(html.Div(line, style={"fontWeight": "600", "marginTop": "6px", "fontSize": "0.8rem"}))
-                    elif line.strip():
-                        formatted.append(html.Div(line, style={"fontSize": "0.8rem", "marginBottom": "3px"}))
+    @app.callback(
+        [Output("chat-messages", "children"),
+         Output("store-chat-streaming", "data", allow_duplicate=True),
+         Output("chat-stream-interval", "disabled", allow_duplicate=True),
+         Output("store-chat-history", "data", allow_duplicate=True)],
+        [Input("chat-stream-interval", "n_intervals")],
+        [State("store-chat-streaming", "data"), State("store-chat-history", "data")],
+        prevent_initial_call=True,
+    )
+    def poll_stream(n_intervals, is_streaming, chat_history):
+        if not is_streaming or chat_engine is None:
+            return no_update, no_update, no_update, no_update
 
-                messages_ui.append(html.Div(formatted, style={
+        buffer, done = chat_engine.get_stream_chunk()
+        display_text = buffer if buffer else "..."
+
+        if done:
+            if chat_history is None:
+                chat_history = []
+            chat_history.append({"role": "assistant", "text": buffer})
+            return _render_messages(chat_history), False, True, chat_history
+
+        # Show partial response
+        partial_history = (chat_history or []) + [{"role": "assistant", "text": display_text}]
+        return _render_messages(partial_history), True, False, no_update
+
+
+def _render_messages(chat_history: list) -> list:
+    messages_ui = []
+    for msg in chat_history:
+        if msg["role"] == "user":
+            messages_ui.append(html.Div(msg["text"], style={
+                "padding": "8px 14px", "margin": "6px 0", "borderRadius": "8px",
+                "maxWidth": "75%", "marginLeft": "auto",
+                "background": "#253045", "color": "#d4dce8", "fontSize": "0.85rem",
+            }))
+        else:
+            messages_ui.append(html.Div(
+                dcc.Markdown(
+                    msg["text"],
+                    style={"fontSize": "0.8rem", "lineHeight": "1.5", "color": "#b8d0e8"},
+                ),
+                style={
                     "padding": "10px 14px", "margin": "6px 0", "borderRadius": "8px",
-                    "maxWidth": "85%", "background": "#1a2d42", "color": "#b8d0e8",
-                    "borderLeft": "3px solid #D4A843", "lineHeight": "1.4",
-                }))
+                    "maxWidth": "85%", "background": "#1a2d42",
+                    "borderLeft": "3px solid #D4A843",
+                },
+            ))
+    return messages_ui
 
-        return messages_ui, "", "", chat_history
+
+def _get_sector_daily(pipeline_data: dict, region: str) -> dict:
+    if region == "all":
+        return {}
+    data = pipeline_data.get(region, {})
+    return data.get("sector_daily", {})
 
 
 def _get_region_data(pipeline_data: dict, region: str) -> tuple:
