@@ -2,6 +2,7 @@
 
 import json
 import logging
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
@@ -68,6 +69,15 @@ class CacheManager:
             df = pd.concat([existing, df], ignore_index=True)
             df = df.drop_duplicates(subset=["url"], keep="first").reset_index(drop=True)
             logger.info(f"Accumulated cache: {len(existing)} existing + new = {len(df)} total")
+
+        # Keep raw-news cache bounded to the recent analysis window plus a small
+        # historical buffer used by Google News supplementation.
+        if "date" in df.columns:
+            df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
+            if not df["date"].dropna().empty:
+                newest_date = max(df["date"].dropna())
+                cutoff = newest_date - timedelta(days=settings.news.days + 5)
+                df = df[df["date"] >= cutoff].reset_index(drop=True)
 
         records = df.copy()
         for col in records.columns:

@@ -47,15 +47,53 @@ def run_pipeline_for_region(settings: Settings, region_key: str, region_config: 
     else:
         articles_df = fetch_news(settings)
 
-    # Supplement with additional sources (only if we need more date coverage)
+    # Supplement with additional sources if we are missing recent date coverage.
     MAX_TOTAL = 300
     MAX_DAYS = 35       # ~5 weeks to catch more historical
 
-    needs_supplement = not cache.has_fresh_cached_news(settings) or (not articles_df.empty and articles_df["date"].nunique() < 7)
+    if not articles_df.empty and "date" in articles_df.columns:
+        articles_df["date"] = pd.to_datetime(articles_df["date"]).dt.date
+
+    coverage_days = int(articles_df["date"].nunique()) if not articles_df.empty and "date" in articles_df.columns else 0
+    needs_supplement = coverage_days < MAX_DAYS
 
     if needs_supplement:
         if "api_source" not in articles_df.columns:
             articles_df["api_source"] = "newsapi"
+
+        # Finnhub â€” company and market news for better breadth/sector coverage
+        try:
+            from src.ingestion.finnhub_client import fetch_finnhub_news
+            fh_df = fetch_finnhub_news(
+                api_key=settings.secrets.finnhub_api_key,
+                keywords=keywords,
+                days=MAX_DAYS,
+                max_articles=150,
+                region="us" if region_key == "us" else "europe",
+            )
+            if not fh_df.empty:
+                before = len(articles_df)
+                articles_df = pd.concat([articles_df, fh_df], ignore_index=True)
+                articles_df = articles_df.drop_duplicates(subset=["url"], keep="first").reset_index(drop=True)
+                added = len(articles_df) - before
+                if added > 0:
+                    logger.info(f"[{region_key}] Finnhub added {added} articles")
+        except Exception as e:
+            logger.warning(f"Finnhub failed: {e}")
+
+        # NewsData.io â€” additional business-news breadth
+        try:
+            from src.ingestion.newsdata_client import fetch_newsdata
+            nd_df = fetch_newsdata(keywords, country=country, days=MAX_DAYS)
+            if not nd_df.empty:
+                before = len(articles_df)
+                articles_df = pd.concat([articles_df, nd_df], ignore_index=True)
+                articles_df = articles_df.drop_duplicates(subset=["url"], keep="first").reset_index(drop=True)
+                added = len(articles_df) - before
+                if added > 0:
+                    logger.info(f"[{region_key}] NewsData.io added {added} articles")
+        except Exception as e:
+            logger.warning(f"NewsData.io failed: {e}")
 
         # Google News RSS — ONLY for historical (>7 days old, title-only = lower quality)
         try:
